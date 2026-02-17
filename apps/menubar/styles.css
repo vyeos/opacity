@@ -210,6 +210,32 @@ h1 {
   text-decoration: underline;
 }
 
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.remove-btn {
+  border: 1px solid #71424a;
+  background: #3f2228;
+  color: #ffd5db;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background: #582d35;
+}
+
+.remove-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .empty {
   border: 1px dashed #3d5870;
   border-radius: 12px;

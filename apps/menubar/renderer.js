@@ -46,6 +46,19 @@ function renderSignals() {
       await window.opacity.openExternal(signal.url);
     });
 
+    const removeBtn = node.querySelector(".remove-btn");
+    removeBtn.addEventListener("click", async () => {
+      removeBtn.disabled = true;
+      const removed = await window.opacity.hideSignal(signal.id);
+      if (removed) {
+        allSignals = allSignals.filter((item) => item.id !== signal.id);
+        renderFilters();
+        renderSignals();
+      } else {
+        removeBtn.disabled = false;
+      }
+    });
+
     list.appendChild(node);
   }
 }

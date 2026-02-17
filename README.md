@@ -152,6 +152,7 @@ Current behavior:
 - Lists recent signals from `signals` table
 - Filter feed by source (`ALL`, `RSS`, `YOUTUBE`, `X`, etc.)
 - `Open source` opens links in your default external browser
+- `Remove` hides a post from the menubar inbox
 - Quit action available directly inside inbox header
 - Auto-refresh every 30 seconds
 

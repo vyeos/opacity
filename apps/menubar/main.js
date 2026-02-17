@@ -21,6 +21,13 @@ function readSignals(limit = 30) {
 const { DatabaseSync } = require("node:sqlite");
 const db = new DatabaseSync(process.argv[1]);
 try {
+  db.exec(\`
+    CREATE TABLE IF NOT EXISTS menubar_hidden (
+      signal_id TEXT PRIMARY KEY,
+      hidden_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  \`);
+
   const rows = db.prepare(\`
     SELECT
       s.id,
@@ -35,6 +42,8 @@ try {
       a.urgency
     FROM signals s
     LEFT JOIN analysis a ON a.signal_id = s.id
+    LEFT JOIN menubar_hidden h ON h.signal_id = s.id
+    WHERE h.signal_id IS NULL
     ORDER BY datetime(s.collected_at) DESC
     LIMIT ?
   \`).all(Number(process.argv[2]) || 30);
@@ -69,6 +78,40 @@ try {
       } catch (parseError) {
         reject(parseError);
       }
+    });
+  });
+}
+
+function hideSignal(signalId) {
+  const dbPath = resolveDbPath();
+  if (!fs.existsSync(dbPath)) {
+    return Promise.resolve(false);
+  }
+
+  const hideScript = `
+const { DatabaseSync } = require("node:sqlite");
+const db = new DatabaseSync(process.argv[1]);
+try {
+  db.exec(\`
+    CREATE TABLE IF NOT EXISTS menubar_hidden (
+      signal_id TEXT PRIMARY KEY,
+      hidden_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  \`);
+  db.prepare("INSERT OR IGNORE INTO menubar_hidden (signal_id) VALUES (?)").run(process.argv[2]);
+  process.stdout.write("ok");
+} finally {
+  db.close();
+}
+`;
+
+  return new Promise((resolve, reject) => {
+    execFile("node", ["-e", hideScript, dbPath, String(signalId)], { maxBuffer: 1024 * 256 }, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve(true);
     });
   });
 }
@@ -131,6 +174,12 @@ function createTray() {
 }
 
 ipcMain.handle("signals:list", async (_event, limit = 30) => readSignals(limit));
+ipcMain.handle("signals:hide", async (_event, signalId) => {
+  if (typeof signalId !== "string" || signalId.length === 0) {
+    return false;
+  }
+  return hideSignal(signalId);
+});
 ipcMain.handle("signals:openExternal", async (_event, url) => {
   if (typeof url !== "string" || !/^https?:\/\//i.test(url)) {
     return false;
