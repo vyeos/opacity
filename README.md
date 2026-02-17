@@ -115,7 +115,7 @@ RUN_CONTINUOUS=true
 RUN_INTERVAL_MINUTES=15
 ```
 
-Full `.env` template is in `/Users/vyeos/personal/opacity/.env.example`.
+Full `.env` template is in `.env.example`.
 
 ## Usage Modes
 
@@ -141,7 +141,7 @@ Full `.env` template is in `/Users/vyeos/personal/opacity/.env.example`.
 
 ## Menubar App
 
-Location: `/Users/vyeos/personal/opacity/apps/menubar`
+Location: `apps/menubar`
 
 Current behavior:
 - click tray icon to open/close inbox
@@ -153,9 +153,9 @@ Current behavior:
 
 ### Launch Shortcuts
 
-- macOS: `/Users/vyeos/personal/opacity/scripts/open-menubar.command`
-- Linux: `/Users/vyeos/personal/opacity/scripts/open-menubar.sh`
-- Windows: `\Users\vyeos\personal\opacity\scripts\open-menubar.bat`
+- macOS: `scripts/open-menubar.command`
+- Linux: `scripts/open-menubar.sh`
+- Windows: `scripts/open-menubar.bat`
 
 ## Packaging Menubar App
 
@@ -168,7 +168,7 @@ pnpm menubar:dist:linux
 ```
 
 Output directory:
-- `/Users/vyeos/personal/opacity/release/menubar`
+- `release/menubar`
 
 ## Common Commands
 
