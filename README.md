@@ -170,6 +170,11 @@ pnpm menubar:dist:linux
 Output directory:
 - `release/menubar`
 
+Automated GitHub release builds:
+- Workflow: `.github/workflows/release-menubar.yml`
+- Trigger: push a version tag like `v1.0.0`
+- Output: macOS/Windows/Linux installers uploaded to GitHub Release assets
+
 ## Common Commands
 
 ```bash
