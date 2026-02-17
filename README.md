@@ -2,66 +2,71 @@
 
 ![Opacity Logo](assets/logo-read.png)
 
-Real-time intelligence inbox for developers and creators.
+Opacity is a local-first intelligence inbox for developers and creators.
+It collects updates from YouTube, RSS, and optional X accounts, then delivers them to:
+- Telegram
+- a desktop menubar inbox
 
-Opacity ingests updates from fast-moving sources (YouTube, X, RSS), analyzes each signal, and routes high-value items to your delivery channels.
+The goal is simple: get high-signal updates without manually checking apps all day.
 
-## Current Status
+## What It Does
 
-Implemented:
-- Real RSS collector (fetch + RSS/Atom parsing)
-- Real YouTube collector (channel Atom feeds)
-- Real X collector (official API with bearer token + usernames)
-- Explicit X toggle (`ENABLE_X_COLLECTION`) to disable X completely
-- AI analyzer adapter (Gemini/OpenAI-compatible) behind toggle
-- AI toggle + guard:
-  - `ENABLE_AI_ANALYSIS=false` skips AI calls
-  - `ENABLE_AI_ANALYSIS=true` requires `AI_API_KEY`
-- No-AI delivery mode:
-  - notifications include only title, description, source, and link
-  - sends to both menubar and Telegram
-- Scheduler mode:
-  - `RUN_CONTINUOUS=true` keeps worker polling forever
-  - `RUN_INTERVAL_MINUTES` controls poll interval
-- Telegram send transport + callback webhook
-- Local SQLite persistence model:
-  - `signals`
-  - `analysis`
-  - `deliveries`
-  - `mutes`
-- De-dup across runs using persisted signal IDs
-- Muting sources via Telegram button callback
-- Detailed Telegram `explain:<eventId>` responses from stored analysis
+- Collects updates from:
+  - RSS feeds
+  - YouTube channels
+  - X accounts (optional)
+- Stores everything locally in SQLite
+- Sends notifications to Telegram
+- Shows a filterable menubar inbox
+- Supports no-AI mode (free): only title/description/source/link
+- Supports AI mode (optional): richer analysis
+- Runs once or continuously on an interval
 
-Not implemented yet:
-- Native mobile app
+## Key Features
 
-## Storage
+- Local-first architecture (no hosted DB required)
+- Source toggles (`ENABLE_X_COLLECTION`, `ENABLE_AI_ANALYSIS`)
+- Telegram actions:
+  - `Mute source`
+  - `Why this matters` (from stored analysis when available)
+- Menubar app features:
+  - source filters
+  - open links in external browser
+  - remove/hide posts
+  - restore hidden posts
+  - settings panel (refresh interval, page size, compact mode, default source)
 
-- SQLite file via `SQLITE_DB_PATH` (default `./data/opacity.db`)
-- Fully local setup, no hosted database required
+## Tech Stack
+
+- Backend: Node.js + TypeScript
+- DB: SQLite
+- Menubar: Electron
+- Messaging: Telegram Bot API
+- Optional AI: Gemini OpenAI-compatible endpoint
 
 ## Project Structure
 
 ```txt
 src/
-  analysis/      # AI analysis interfaces and implementations
-  bot/           # Telegram webhook action server
-  collectors/    # YouTube/X/RSS/GitHub collectors
-  notifier/      # Delivery channels (menubar, Telegram, push)
-  processor/     # Routing and scoring logic
-  shared/        # Shared types and runtime config
-  storage/       # Persistence (SQLite)
-  index.ts       # Pipeline entrypoint
+  analysis/      AI analysis adapters
+  bot/           Telegram webhook server
+  collectors/    RSS / YouTube / X collectors
+  notifier/      Telegram + console notifier
+  processor/     routing logic
+  shared/        config + shared types
+  storage/       SQLite persistence
+  index.ts       worker entrypoint
+apps/menubar/    Electron menubar client
+scripts/         OS launch shortcuts
 ```
 
-## Quick Start
+## Requirements
 
-Requirements:
 - Node.js 20+
-- `pnpm` (preferred) or `bun`
+- pnpm
+- Telegram bot token + chat id (for Telegram delivery)
 
-Setup:
+## Quick Start
 
 ```bash
 pnpm install
@@ -69,7 +74,7 @@ cp .env.example .env
 pnpm dev
 ```
 
-Run webhook server for Telegram button actions:
+Run webhook server for Telegram callback actions:
 
 ```bash
 pnpm dev:webhook
@@ -79,28 +84,67 @@ Run menubar app:
 
 ```bash
 pnpm menubar
-pnpm menubar:dev
 ```
 
-Shortcut launch (macOS Finder double-click):
+## Environment Variables
+
+Minimal local setup:
 
 ```bash
-/Users/vyeos/personal/opacity/scripts/open-menubar.command
+ENABLE_AI_ANALYSIS=false
+ENABLE_X_COLLECTION=false
+RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
+YOUTUBE_CHANNEL_IDS=<comma-separated channel IDs>
+TELEGRAM_BOT_TOKEN=<your token>
+TELEGRAM_CHAT_ID=<your chat id>
+SQLITE_DB_PATH=./data/opacity.db
+RUN_CONTINUOUS=true
+RUN_INTERVAL_MINUTES=15
 ```
 
-Shortcut launch (Linux):
+Full `.env` template is in `/Users/vyeos/personal/opacity/.env.example`.
 
-```bash
-/Users/vyeos/personal/opacity/scripts/open-menubar.sh
-```
+## Usage Modes
 
-Shortcut launch (Windows CMD/Explorer):
+### 1) Free / No-AI Mode (recommended to start)
 
-```bat
-\Users\vyeos\personal\opacity\scripts\open-menubar.bat
-```
+- `ENABLE_AI_ANALYSIS=false`
+- Notifications include only:
+  - title
+  - description
+  - source
+  - link
 
-Package menubar app:
+### 2) AI Mode
+
+- `ENABLE_AI_ANALYSIS=true`
+- `AI_API_KEY` required
+- Uses `AI_API_BASE` + `AI_MODEL` for analysis output
+
+### 3) Optional X Mode
+
+- `ENABLE_X_COLLECTION=true`
+- Requires `X_BEARER_TOKEN` and `X_FOLLOWED_USERNAMES`
+
+## Menubar App
+
+Location: `/Users/vyeos/personal/opacity/apps/menubar`
+
+Current behavior:
+- click tray icon to open/close inbox
+- filter by source
+- open post links in your browser
+- remove posts from inbox view
+- restore removed posts from settings
+- quit app from inside the inbox
+
+### Launch Shortcuts
+
+- macOS: `/Users/vyeos/personal/opacity/scripts/open-menubar.command`
+- Linux: `/Users/vyeos/personal/opacity/scripts/open-menubar.sh`
+- Windows: `\Users\vyeos\personal\opacity\scripts\open-menubar.bat`
+
+## Packaging Menubar App
 
 ```bash
 pnpm menubar:pack
@@ -110,64 +154,50 @@ pnpm menubar:dist:win
 pnpm menubar:dist:linux
 ```
 
-Build:
+Output directory:
+- `/Users/vyeos/personal/opacity/release/menubar`
+
+## Common Commands
 
 ```bash
-pnpm build
-pnpm start
+pnpm dev             # run worker
+pnpm dev:webhook     # run telegram webhook server
+pnpm menubar         # run menubar app
+pnpm build           # build backend
+pnpm typecheck       # type check
 ```
 
-Environment:
+## Troubleshooting
+
+### Electron install error (`Electron failed to install correctly`)
+
+Run:
 
 ```bash
-ENABLE_AI_ANALYSIS=false
-AI_API_KEY=your_key_if_ai_enabled
-AI_API_BASE=https://generativelanguage.googleapis.com/v1beta/openai
-AI_MODEL=gemini-2.0-flash
-TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=your_chat_id
-TELEGRAM_WEBHOOK_PORT=8787
-TELEGRAM_WEBHOOK_SECRET=optional_secret_for_telegram_header
-RUN_CONTINUOUS=false
-RUN_INTERVAL_MINUTES=15
-ENABLE_X_COLLECTION=false
-X_BEARER_TOKEN=
-X_FOLLOWED_USERNAMES=
-X_MAX_ITEMS=5
-RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
-RSS_MAX_ITEMS=5
-YOUTUBE_CHANNEL_IDS=
-YOUTUBE_MAX_ITEMS=3
-SQLITE_DB_PATH=./data/opacity.db
-PRIORITY_THRESHOLD=80
-HOURLY_THRESHOLD=50
+pnpm approve-builds
 ```
 
-## Menubar App
+Approve `electron` and `esbuild`, then reinstall.
 
-The desktop menubar app lives in `/Users/vyeos/personal/opacity/apps/menubar` and reads your local SQLite feed store.
+### Telegram doesn’t receive messages
 
-Current behavior:
-- Tray icon in macOS menubar
-- Click tray icon to open/close inbox popup (no tray menu)
-- Lists recent signals from `signals` table
-- Filter feed by source (`ALL`, `RSS`, `YOUTUBE`, `X`, etc.)
-- `Open source` opens links in your default external browser
-- `Remove` hides a post from the menubar inbox
-- Settings panel for refresh interval, feed size, default source, compact mode, and restore removed posts
-- Quit action available directly inside inbox header
-- Auto-refresh every 30 seconds
+- verify `TELEGRAM_CHAT_ID` is your user/group chat ID (not a bot username)
+- send `/start` to your bot first
 
-Packaging notes:
-- Config file: `/Users/vyeos/personal/opacity/electron-builder.menubar.yml`
-- Output: `/Users/vyeos/personal/opacity/release/menubar`
-- If installs block scripts, run `pnpm approve-builds` and allow `electron` + `esbuild`.
+### X disabled but old X posts still visible
 
-## Next Milestones
+- old posts are stored in SQLite history
+- disabling X stops new collection only
 
-1. Add richer relevance scoring tuned to your topics
-2. Build a mobile client
-3. Add optional export/sync features for local archive
+## Security Notes
+
+- Keep `.env` private
+- Never commit API keys or bot tokens
+- Rotate keys/tokens if leaked
+
+## Status
+
+This project is in working v1 state for personal use.
 
 ## License
 
