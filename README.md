@@ -19,26 +19,26 @@ Core experience:
 3. Rank and route by urgency and relevance.
 4. Deliver to laptop menubar inbox + phone channel (Telegram first).
 
-## Current Status (Starter Scaffold)
+## Current Status
 
 Implemented:
 - TypeScript Node starter project
 - Unified signal event schema
-- Mock collectors:
-  - YouTube uploads
-  - X posts
-  - RSS item
-- Analysis interface with `MockAnalyzer`
+- Real RSS collector (fetch + RSS/Atom parsing)
+- Mock social collectors:
+  - YouTube uploads (placeholder)
+  - X posts (placeholder)
+- AI analyzer adapter (OpenAI-compatible API)
 - Routing engine with urgency/score thresholds
-- Notifier interface with console output (menubar + Telegram placeholders)
+- Telegram bot notifier transport with inline action buttons
+- Console notifier (menubar placeholder)
 - Environment config validation via Zod
 
 Not implemented yet:
-- Real API integrations (YouTube, X, RSS fetch)
+- Real API integrations (YouTube, X)
 - Persistent storage (SQLite/Postgres)
-- Real AI provider client
+- Telegram callback handling/webhook receiver
 - Menubar app UI
-- Telegram bot transport
 
 ## Project Structure
 
@@ -56,7 +56,7 @@ src/
 
 Requirements:
 - Node.js 20+
-- `pnpm`
+- `pnpm` (preferred) or `bun`
 
 Setup:
 
@@ -71,6 +71,28 @@ Build:
 ```bash
 pnpm build
 pnpm start
+```
+
+Using bun:
+
+```bash
+bun install
+bun run dev
+```
+
+Environment:
+
+```bash
+AI_API_KEY=your_key
+AI_API_BASE=https://api.openai.com/v1
+AI_MODEL=gpt-4o-mini
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
+RSS_MAX_ITEMS=5
+ENABLE_MOCK_SOCIAL=true
+PRIORITY_THRESHOLD=80
+HOURLY_THRESHOLD=50
 ```
 
 ## Delivery Modes (Planned)
@@ -89,7 +111,7 @@ Priority source list:
 5. Hacker News / Product Hunt / Reddit (opt-in)
 6. Research streams (arXiv, Papers with Code)
 
-## AI Analysis Contract (Planned)
+## AI Analysis Contract
 
 Each signal should produce:
 - TL;DR
@@ -105,10 +127,10 @@ Each signal should produce:
 ## Build Roadmap
 
 ### Milestone 1 - Functional backend MVP
-- Add real collectors for RSS + YouTube uploads
+- Add real collector for YouTube uploads
 - Add SQLite persistence for events/read state
-- Add AI provider adapter and structured JSON output
-- Add Telegram bot delivery
+- Harden AI JSON schema validation/retries
+- Add Telegram webhook callback handling
 
 ### Milestone 2 - Product workflow
 - User-configurable source list and topic filters

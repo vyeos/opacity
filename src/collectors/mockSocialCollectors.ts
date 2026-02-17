@@ -42,25 +42,8 @@ export class MockXCollector implements Collector {
   }
 }
 
-export class MockRssCollector implements Collector {
-  async collect(): Promise<SignalEvent[]> {
-    return [
-      {
-        id: makeId("rss", 1),
-        source: "rss",
-        author: "OpenAI News",
-        title: "API update: new structured outputs",
-        url: "https://example.com/openai-news",
-        contentSnippet: "Developers can now enforce schema-constrained responses.",
-        publishedAt: new Date().toISOString(),
-        tags: ["api", "ai"]
-      }
-    ];
-  }
-}
-
-export async function collectAllSignals(): Promise<SignalEvent[]> {
-  const collectors: Collector[] = [new MockYouTubeCollector(), new MockXCollector(), new MockRssCollector()];
+export async function collectMockSocialSignals(): Promise<SignalEvent[]> {
+  const collectors: Collector[] = [new MockYouTubeCollector(), new MockXCollector()];
   const batches = await Promise.all(collectors.map((collector) => collector.collect()));
   return batches.flat();
 }
