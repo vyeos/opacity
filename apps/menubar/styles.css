@@ -74,17 +74,19 @@ h1 {
   letter-spacing: 0.01em;
 }
 
-#refreshBtn {
+.action-btn {
   border: 1px solid #356a8f;
   background: #12324a;
   color: var(--ink);
   border-radius: 999px;
   padding: 6px 12px;
   font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
 }
 
-#refreshBtn:hover {
+.action-btn:hover {
   background: #194667;
 }
 
@@ -94,12 +96,13 @@ h1 {
 }
 
 .danger {
-  border: 1px solid #774149 !important;
-  background: #3a1d24 !important;
+  border-color: #7b4a51;
+  background: linear-gradient(145deg, #4b2a31, #3a1d24);
+  color: #ffe6ea;
 }
 
 .danger:hover {
-  background: #522730 !important;
+  background: linear-gradient(145deg, #5b3139, #452028);
 }
 
 .hint {
