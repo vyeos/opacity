@@ -60,6 +60,21 @@ export class TelegramNotifier implements Notifier {
     }
 
     try {
+      const inlineKeyboard: Array<Array<{ text: string; url?: string; callback_data?: string }>> = [
+        [{ text: "Open source", url: signal.event.url }]
+      ];
+
+      if (this.config.ENABLE_TELEGRAM_WEBHOOK) {
+        inlineKeyboard.push(
+          this.config.ENABLE_AI_ANALYSIS
+            ? [
+                { text: "Why this matters", callback_data: `explain:${signal.event.id}` },
+                { text: "Mute source", callback_data: `mute:${signal.event.source}` }
+              ]
+            : [{ text: "Mute source", callback_data: `mute:${signal.event.source}` }]
+        );
+      }
+
       const response = await fetch(`https://api.telegram.org/bot${this.config.TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: "POST",
         headers: {
@@ -70,15 +85,7 @@ export class TelegramNotifier implements Notifier {
           text: formatSignal(signal, this.config.ENABLE_AI_ANALYSIS),
           disable_web_page_preview: true,
           reply_markup: {
-            inline_keyboard: [
-              [{ text: "Open source", url: signal.event.url }],
-              this.config.ENABLE_AI_ANALYSIS
-                ? [
-                    { text: "Why this matters", callback_data: `explain:${signal.event.id}` },
-                    { text: "Mute source", callback_data: `mute:${signal.event.source}` }
-                  ]
-                : [{ text: "Mute source", callback_data: `mute:${signal.event.source}` }]
-            ]
+            inline_keyboard: inlineKeyboard
           }
         })
       });

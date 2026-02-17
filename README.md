@@ -80,6 +80,12 @@ Run webhook server for Telegram callback actions:
 pnpm dev:webhook
 ```
 
+Webhook is optional. Enable it only if you want Telegram callback actions (`Mute source`, `Why this matters`):
+
+```bash
+ENABLE_TELEGRAM_WEBHOOK=true
+```
+
 Run menubar app:
 
 ```bash
