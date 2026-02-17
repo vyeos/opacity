@@ -34,3 +34,12 @@ export interface NotificationTarget {
   menubar: boolean;
   telegram: boolean;
 }
+
+export type DeliveryChannel = "menubar" | "telegram";
+export type DeliveryStatus = "sent" | "skipped" | "failed";
+
+export interface DeliveryAttempt {
+  channel: DeliveryChannel;
+  status: DeliveryStatus;
+  errorMessage?: string;
+}

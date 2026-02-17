@@ -25,7 +25,7 @@ const configSchema = z
       ),
     RSS_MAX_ITEMS: z.coerce.number().int().min(1).max(20).default(5),
     ENABLE_MOCK_SOCIAL: z.coerce.boolean().default(true),
-    STATE_FILE: z.string().default("./data/state.json"),
+    SQLITE_DB_PATH: z.string().default("./data/opacity.db"),
     PRIORITY_THRESHOLD: z.coerce.number().min(0).max(100).default(80),
     HOURLY_THRESHOLD: z.coerce.number().min(0).max(100).default(50)
   })

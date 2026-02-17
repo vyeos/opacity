@@ -1,8 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 
-import { StateStore } from "../state/store.js";
 import type { AppConfig } from "../shared/config.js";
 import type { SourceKind } from "../shared/types.js";
+import { SqliteStore } from "../storage/sqliteStore.js";
 
 interface TelegramUpdate {
   callback_query?: {
@@ -51,7 +51,8 @@ async function sendBotRequest(config: AppConfig, method: string, payload: unknow
 }
 
 export async function startTelegramWebhookServer(config: AppConfig): Promise<void> {
-  const stateStore = new StateStore(config.STATE_FILE);
+  const store = new SqliteStore(config.SQLITE_DB_PATH);
+  await store.init();
 
   const server = createServer(async (req, res) => {
     if (req.method === "GET" && req.url === "/health") {
@@ -85,11 +86,7 @@ export async function startTelegramWebhookServer(config: AppConfig): Promise<voi
       if (callback.data.startsWith("mute:")) {
         const source = parseSource(callback.data);
         if (source) {
-          const state = await stateStore.load();
-          if (!state.mutedSources.includes(source)) {
-            state.mutedSources.push(source);
-            await stateStore.save(state);
-          }
+          await store.muteSource(source);
 
           await sendBotRequest(config, "answerCallbackQuery", {
             callback_query_id: callback.id,
@@ -100,11 +97,15 @@ export async function startTelegramWebhookServer(config: AppConfig): Promise<voi
       }
 
       if (callback.data.startsWith("explain:")) {
+        const eventId = callback.data.split(":")[1];
         const chatId = callback.message?.chat?.id;
-        if (chatId) {
+        if (chatId && eventId) {
+          const explainText =
+            (await store.getSignalSummary(eventId)) ??
+            "No stored analysis found for this event yet. Try again after the event is processed.";
           await sendBotRequest(config, "sendMessage", {
             chat_id: chatId,
-            text: "Deeper explain is not wired yet. Next step: fetch stored analysis by event id and send expanded reasoning."
+            text: explainText
           });
         }
 
