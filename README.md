@@ -94,8 +94,8 @@ Environment:
 ```bash
 ENABLE_AI_ANALYSIS=false
 AI_API_KEY=your_key_if_ai_enabled
-AI_API_BASE=https://api.openai.com/v1
-AI_MODEL=gpt-4o-mini
+AI_API_BASE=https://generativelanguage.googleapis.com/v1beta/openai
+AI_MODEL=gemini-2.0-flash
 TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_CHAT_ID=your_chat_id
 TELEGRAM_WEBHOOK_PORT=8787
