@@ -16,7 +16,7 @@ The goal is simple: get high-signal updates without manually checking apps all d
   - YouTube channels
   - X accounts (optional)
 - Stores everything locally in SQLite
-- Sends notifications to Telegram
+- Sends notifications to Telegram (optional)
 - Shows a filterable menubar inbox
 - Supports no-AI mode (free): only title/description/source/link
 - Supports AI mode (optional): richer analysis
@@ -26,6 +26,7 @@ The goal is simple: get high-signal updates without manually checking apps all d
 
 - Local-first architecture (no hosted DB required)
 - Source toggles (`ENABLE_X_COLLECTION`, `ENABLE_AI_ANALYSIS`)
+- Telegram delivery toggle (`ENABLE_TELEGRAM_DELIVERY`)
 - Telegram actions:
   - `Mute source`
   - `Why this matters` (from stored analysis when available)
@@ -36,6 +37,7 @@ The goal is simple: get high-signal updates without manually checking apps all d
   - restore hidden posts
   - dedicated settings page
   - edit runtime `.env` values from UI (API keys, YouTube IDs, X usernames, feature toggles)
+  - progressive settings UI (enable feature first, then related fields appear)
   - local UI preferences (refresh interval, page size, compact mode, default source)
 
 ## Tech Stack
@@ -66,7 +68,6 @@ scripts/         OS launch shortcuts
 
 - Node.js 20+
 - pnpm
-- Telegram bot token + chat id (only if `ENABLE_TELEGRAM_DELIVERY=true`)
 
 ## Quick Start
 
@@ -113,8 +114,6 @@ Minimal local setup:
 
 ```bash
 ENABLE_TELEGRAM_DELIVERY=false
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_CHAT_ID=
 ENABLE_AI_ANALYSIS=false
 ENABLE_X_COLLECTION=false
 RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
@@ -153,6 +152,12 @@ Full `.env` template is in `.env.example`.
 - `ENABLE_TELEGRAM_DELIVERY=true`
 - Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`
 
+### 5) Optional Telegram Webhook Mode
+
+- `ENABLE_TELEGRAM_WEBHOOK=true`
+- Requires `ENABLE_TELEGRAM_DELIVERY=true`
+- Used for callback buttons like `Mute source` and `Why this matters`
+
 ## Menubar App
 
 Location: `apps/menubar`
@@ -164,6 +169,7 @@ Current behavior:
 - remove posts from inbox view
 - restore removed posts from settings
 - open `Settings` page to manage `.env` without manually editing files
+- feature toggles appear first; related credentials/fields are shown when enabled
 - quit app from inside the inbox
 
 ### Launch Shortcuts
@@ -189,6 +195,13 @@ Automated GitHub release builds:
 - Workflow: `.github/workflows/release-menubar.yml`
 - Trigger: push a version tag like `v1.0.0`
 - Output: macOS/Windows/Linux installers uploaded to GitHub Release assets
+
+Create and push a release tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
 
 ## Common Commands
 
