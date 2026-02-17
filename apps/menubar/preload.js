@@ -10,6 +10,12 @@ contextBridge.exposeInMainWorld("opacity", {
   clearHiddenSignals() {
     return ipcRenderer.invoke("signals:clearHidden");
   },
+  getRuntimeConfig() {
+    return ipcRenderer.invoke("config:get");
+  },
+  saveRuntimeConfig(values) {
+    return ipcRenderer.invoke("config:save", values);
+  },
   openExternal(url) {
     return ipcRenderer.invoke("signals:openExternal", url);
   },

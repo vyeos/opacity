@@ -1,19 +1,46 @@
 const list = document.getElementById("signalList");
 const filters = document.getElementById("filters");
 const refreshBtn = document.getElementById("refreshBtn");
-const settingsBtn = document.getElementById("settingsBtn");
 const quitBtn = document.getElementById("quitBtn");
-const settingsPanel = document.getElementById("settingsPanel");
+const showInboxBtn = document.getElementById("showInboxBtn");
+const showSettingsBtn = document.getElementById("showSettingsBtn");
+const inboxPage = document.getElementById("inboxPage");
+const settingsPage = document.getElementById("settingsPage");
+
 const refreshIntervalInput = document.getElementById("refreshIntervalInput");
 const pageSizeInput = document.getElementById("pageSizeInput");
 const defaultSourceInput = document.getElementById("defaultSourceInput");
 const compactModeInput = document.getElementById("compactModeInput");
 const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const restoreHiddenBtn = document.getElementById("restoreHiddenBtn");
-const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const saveStatus = document.getElementById("saveStatus");
+
+const cfgEnableAi = document.getElementById("cfgEnableAi");
+const cfgAiApiKey = document.getElementById("cfgAiApiKey");
+const cfgAiApiBase = document.getElementById("cfgAiApiBase");
+const cfgAiModel = document.getElementById("cfgAiModel");
+const cfgEnableX = document.getElementById("cfgEnableX");
+const cfgXBearer = document.getElementById("cfgXBearer");
+const cfgXUsers = document.getElementById("cfgXUsers");
+const cfgXMax = document.getElementById("cfgXMax");
+const cfgYoutubeIds = document.getElementById("cfgYoutubeIds");
+const cfgYoutubeMax = document.getElementById("cfgYoutubeMax");
+const cfgRssFeeds = document.getElementById("cfgRssFeeds");
+const cfgRssMax = document.getElementById("cfgRssMax");
+const cfgTelegramBotToken = document.getElementById("cfgTelegramBotToken");
+const cfgTelegramChatId = document.getElementById("cfgTelegramChatId");
+const cfgEnableTelegramWebhook = document.getElementById("cfgEnableTelegramWebhook");
+const cfgTelegramWebhookPort = document.getElementById("cfgTelegramWebhookPort");
+const cfgTelegramWebhookSecret = document.getElementById("cfgTelegramWebhookSecret");
+const cfgRunContinuous = document.getElementById("cfgRunContinuous");
+const cfgRunInterval = document.getElementById("cfgRunInterval");
+const cfgPriorityThreshold = document.getElementById("cfgPriorityThreshold");
+const cfgHourlyThreshold = document.getElementById("cfgHourlyThreshold");
+const cfgSqlitePath = document.getElementById("cfgSqlitePath");
+
 const template = document.getElementById("signalTemplate");
 
-const SETTINGS_KEY = "opacity_menubar_settings_v1";
+const SETTINGS_KEY = "opacity_menubar_settings_v2";
 const DEFAULT_SETTINGS = {
   refreshIntervalSec: 30,
   pageSize: 40,
@@ -47,6 +74,14 @@ let settings = loadSettings();
 
 function saveSettings() {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function setPage(page) {
+  const isInbox = page === "inbox";
+  inboxPage.classList.toggle("hidden", !isInbox);
+  settingsPage.classList.toggle("hidden", isInbox);
+  showInboxBtn.classList.toggle("active-tab", isInbox);
+  showSettingsBtn.classList.toggle("active-tab", !isInbox);
 }
 
 function applySettingsToUi() {
@@ -170,6 +205,103 @@ function renderFilters() {
   }
 }
 
+function envIsTrue(value) {
+  return String(value || "").toLowerCase() === "true";
+}
+
+function parseCsv(value) {
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join(",");
+}
+
+function setSaveStatus(message, isError = false) {
+  saveStatus.textContent = message;
+  saveStatus.classList.toggle("error", isError);
+}
+
+function applyRuntimeConfigFormState() {
+  cfgAiApiKey.disabled = !cfgEnableAi.checked;
+  cfgAiApiBase.disabled = !cfgEnableAi.checked;
+  cfgAiModel.disabled = !cfgEnableAi.checked;
+
+  cfgXBearer.disabled = !cfgEnableX.checked;
+  cfgXUsers.disabled = !cfgEnableX.checked;
+  cfgXMax.disabled = !cfgEnableX.checked;
+
+  cfgTelegramWebhookSecret.disabled = !cfgEnableTelegramWebhook.checked;
+}
+
+async function loadRuntimeConfig() {
+  try {
+    const cfg = await window.opacity.getRuntimeConfig();
+    cfgEnableAi.checked = envIsTrue(cfg.ENABLE_AI_ANALYSIS);
+    cfgAiApiKey.value = cfg.AI_API_KEY || "";
+    cfgAiApiBase.value = cfg.AI_API_BASE || "";
+    cfgAiModel.value = cfg.AI_MODEL || "";
+
+    cfgEnableX.checked = envIsTrue(cfg.ENABLE_X_COLLECTION);
+    cfgXBearer.value = cfg.X_BEARER_TOKEN || "";
+    cfgXUsers.value = cfg.X_FOLLOWED_USERNAMES || "";
+    cfgXMax.value = cfg.X_MAX_ITEMS || "";
+
+    cfgYoutubeIds.value = cfg.YOUTUBE_CHANNEL_IDS || "";
+    cfgYoutubeMax.value = cfg.YOUTUBE_MAX_ITEMS || "";
+    cfgRssFeeds.value = cfg.RSS_FEEDS || "";
+    cfgRssMax.value = cfg.RSS_MAX_ITEMS || "";
+
+    cfgTelegramBotToken.value = cfg.TELEGRAM_BOT_TOKEN || "";
+    cfgTelegramChatId.value = cfg.TELEGRAM_CHAT_ID || "";
+    cfgEnableTelegramWebhook.checked = envIsTrue(cfg.ENABLE_TELEGRAM_WEBHOOK);
+    cfgTelegramWebhookPort.value = cfg.TELEGRAM_WEBHOOK_PORT || "";
+    cfgTelegramWebhookSecret.value = cfg.TELEGRAM_WEBHOOK_SECRET || "";
+
+    cfgRunContinuous.checked = envIsTrue(cfg.RUN_CONTINUOUS);
+    cfgRunInterval.value = cfg.RUN_INTERVAL_MINUTES || "";
+    cfgPriorityThreshold.value = cfg.PRIORITY_THRESHOLD || "";
+    cfgHourlyThreshold.value = cfg.HOURLY_THRESHOLD || "";
+    cfgSqlitePath.value = cfg.SQLITE_DB_PATH || "";
+
+    applyRuntimeConfigFormState();
+    setSaveStatus("");
+  } catch (error) {
+    setSaveStatus(`Failed to load .env settings: ${error.message || error}`, true);
+  }
+}
+
+function collectRuntimeConfigPayload() {
+  return {
+    ENABLE_AI_ANALYSIS: cfgEnableAi.checked ? "true" : "false",
+    AI_API_KEY: cfgAiApiKey.value.trim(),
+    AI_API_BASE: cfgAiApiBase.value.trim(),
+    AI_MODEL: cfgAiModel.value.trim(),
+
+    ENABLE_X_COLLECTION: cfgEnableX.checked ? "true" : "false",
+    X_BEARER_TOKEN: cfgXBearer.value.trim(),
+    X_FOLLOWED_USERNAMES: parseCsv(cfgXUsers.value),
+    X_MAX_ITEMS: cfgXMax.value.trim(),
+
+    YOUTUBE_CHANNEL_IDS: parseCsv(cfgYoutubeIds.value),
+    YOUTUBE_MAX_ITEMS: cfgYoutubeMax.value.trim(),
+    RSS_FEEDS: parseCsv(cfgRssFeeds.value),
+    RSS_MAX_ITEMS: cfgRssMax.value.trim(),
+
+    TELEGRAM_BOT_TOKEN: cfgTelegramBotToken.value.trim(),
+    TELEGRAM_CHAT_ID: cfgTelegramChatId.value.trim(),
+    ENABLE_TELEGRAM_WEBHOOK: cfgEnableTelegramWebhook.checked ? "true" : "false",
+    TELEGRAM_WEBHOOK_PORT: cfgTelegramWebhookPort.value.trim(),
+    TELEGRAM_WEBHOOK_SECRET: cfgTelegramWebhookSecret.value.trim(),
+
+    RUN_CONTINUOUS: cfgRunContinuous.checked ? "true" : "false",
+    RUN_INTERVAL_MINUTES: cfgRunInterval.value.trim(),
+    PRIORITY_THRESHOLD: cfgPriorityThreshold.value.trim(),
+    HOURLY_THRESHOLD: cfgHourlyThreshold.value.trim(),
+    SQLITE_DB_PATH: cfgSqlitePath.value.trim()
+  };
+}
+
 async function refresh() {
   try {
     allSignals = await window.opacity.listSignals(settings.pageSize);
@@ -198,11 +330,10 @@ async function refresh() {
 }
 
 refreshBtn.addEventListener("click", refresh);
-settingsBtn.addEventListener("click", () => {
-  settingsPanel.classList.toggle("hidden");
-});
-closeSettingsBtn.addEventListener("click", () => {
-  settingsPanel.classList.add("hidden");
+showInboxBtn.addEventListener("click", () => setPage("inbox"));
+showSettingsBtn.addEventListener("click", async () => {
+  setPage("settings");
+  await loadRuntimeConfig();
 });
 quitBtn.addEventListener("click", async () => {
   await window.opacity.quitApp();
@@ -219,8 +350,19 @@ saveSettingsBtn.addEventListener("click", async () => {
   resetRefreshTimer();
 
   activeSource = settings.defaultSource;
-  await refresh();
-  settingsPanel.classList.add("hidden");
+
+  const payload = collectRuntimeConfigPayload();
+  try {
+    const saved = await window.opacity.saveRuntimeConfig(payload);
+    if (!saved) {
+      setSaveStatus("Save failed. Check values and try again.", true);
+      return;
+    }
+    setSaveStatus("Saved to .env. Restart pipeline/webhook processes to apply runtime changes.");
+    await refresh();
+  } catch (error) {
+    setSaveStatus(`Save failed: ${error.message || error}`, true);
+  }
 });
 
 restoreHiddenBtn.addEventListener("click", async () => {
@@ -233,6 +375,11 @@ restoreHiddenBtn.addEventListener("click", async () => {
   }
 });
 
+cfgEnableAi.addEventListener("change", applyRuntimeConfigFormState);
+cfgEnableX.addEventListener("change", applyRuntimeConfigFormState);
+cfgEnableTelegramWebhook.addEventListener("change", applyRuntimeConfigFormState);
+
 applySettingsToUi();
+setPage("inbox");
 refresh();
 resetRefreshTimer();

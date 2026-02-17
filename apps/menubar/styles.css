@@ -43,6 +43,14 @@ body {
   padding: 14px;
 }
 
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -100,6 +108,12 @@ h1 {
   background: #17344a;
 }
 
+.active-tab {
+  border-color: #2aa0c8;
+  background: #124765;
+  color: #f0fbff;
+}
+
 .actions {
   display: flex;
   gap: 8px;
@@ -144,6 +158,27 @@ h1 {
   gap: 10px;
 }
 
+#settingsPage {
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.settings-block {
+  border: 1px solid var(--line);
+  background: linear-gradient(160deg, rgba(14, 31, 46, 0.95), rgba(8, 19, 29, 0.92));
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-block h2 {
+  margin: 0;
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 15px;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -176,6 +211,23 @@ h1 {
 .settings-actions {
   display: flex;
   gap: 8px;
+}
+
+.settings-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.save-status {
+  margin: 0;
+  min-height: 16px;
+  font-size: 11px;
+  color: #9cdcb8;
+}
+
+.save-status.error {
+  color: #ffb5c0;
 }
 
 .hidden {

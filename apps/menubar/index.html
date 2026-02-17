@@ -12,48 +12,87 @@
       <header class="topbar">
         <div class="brand-wrap">
           <span class="dot"></span>
-          <h1>Opacity Inbox</h1>
+          <h1>Opacity</h1>
         </div>
         <div class="actions">
-          <button id="settingsBtn" class="action-btn ghost">Settings</button>
+          <button id="showInboxBtn" class="action-btn ghost active-tab">Inbox</button>
+          <button id="showSettingsBtn" class="action-btn ghost">Settings</button>
           <button id="refreshBtn" class="action-btn">Refresh</button>
           <button id="quitBtn" class="action-btn danger">Quit</button>
         </div>
       </header>
 
-      <section class="hint">
-        <p>Live signal feed from your local pipeline store.</p>
+      <section id="inboxPage" class="page">
+        <section class="hint">
+          <p>Live signal feed from your local pipeline store.</p>
+        </section>
+
+        <section id="filters" class="filters"></section>
+        <section id="signalList" class="list"></section>
       </section>
 
-      <section id="settingsPanel" class="settings-panel hidden">
-        <div class="settings-grid">
-          <label class="field">
-            <span>Refresh interval (sec)</span>
-            <input id="refreshIntervalInput" type="number" min="10" max="600" />
-          </label>
-          <label class="field">
-            <span>Feed size (posts)</span>
-            <input id="pageSizeInput" type="number" min="10" max="200" />
-          </label>
-          <label class="field">
-            <span>Default source</span>
-            <select id="defaultSourceInput"></select>
-          </label>
-          <label class="field switch">
-            <input id="compactModeInput" type="checkbox" />
-            <span>Compact cards mode</span>
-          </label>
-        </div>
-        <div class="settings-actions">
-          <button id="saveSettingsBtn" class="action-btn">Save</button>
-          <button id="restoreHiddenBtn" class="action-btn ghost">Restore Removed</button>
-          <button id="closeSettingsBtn" class="action-btn ghost">Close</button>
-        </div>
+      <section id="settingsPage" class="page hidden">
+        <section class="settings-block">
+          <h2>App Settings</h2>
+          <div class="settings-grid">
+            <label class="field">
+              <span>Refresh interval (sec)</span>
+              <input id="refreshIntervalInput" type="number" min="10" max="600" />
+            </label>
+            <label class="field">
+              <span>Feed size (posts)</span>
+              <input id="pageSizeInput" type="number" min="10" max="200" />
+            </label>
+            <label class="field">
+              <span>Default source</span>
+              <select id="defaultSourceInput"></select>
+            </label>
+            <label class="field switch">
+              <input id="compactModeInput" type="checkbox" />
+              <span>Compact cards mode</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-block">
+          <h2>Pipeline Config (.env)</h2>
+          <div class="settings-grid">
+            <label class="field switch"><input id="cfgEnableAi" type="checkbox" /><span>Enable AI analysis</span></label>
+            <label class="field"><span>AI API Key</span><input id="cfgAiApiKey" type="password" /></label>
+            <label class="field"><span>AI API Base</span><input id="cfgAiApiBase" type="text" /></label>
+            <label class="field"><span>AI Model</span><input id="cfgAiModel" type="text" /></label>
+
+            <label class="field switch"><input id="cfgEnableX" type="checkbox" /><span>Enable X collection</span></label>
+            <label class="field"><span>X Bearer Token</span><input id="cfgXBearer" type="password" /></label>
+            <label class="field"><span>X Usernames (comma-separated)</span><input id="cfgXUsers" type="text" /></label>
+            <label class="field"><span>X Max Items</span><input id="cfgXMax" type="number" min="1" max="50" /></label>
+
+            <label class="field"><span>YouTube Channel IDs (comma-separated)</span><input id="cfgYoutubeIds" type="text" /></label>
+            <label class="field"><span>YouTube Max Items</span><input id="cfgYoutubeMax" type="number" min="1" max="50" /></label>
+            <label class="field"><span>RSS Feeds (comma-separated)</span><input id="cfgRssFeeds" type="text" /></label>
+            <label class="field"><span>RSS Max Items</span><input id="cfgRssMax" type="number" min="1" max="50" /></label>
+
+            <label class="field"><span>Telegram Bot Token</span><input id="cfgTelegramBotToken" type="password" /></label>
+            <label class="field"><span>Telegram Chat ID</span><input id="cfgTelegramChatId" type="text" /></label>
+            <label class="field switch"><input id="cfgEnableTelegramWebhook" type="checkbox" /><span>Enable Telegram webhook callbacks</span></label>
+            <label class="field"><span>Webhook Port</span><input id="cfgTelegramWebhookPort" type="number" min="1" max="65535" /></label>
+            <label class="field"><span>Webhook Secret</span><input id="cfgTelegramWebhookSecret" type="password" /></label>
+
+            <label class="field switch"><input id="cfgRunContinuous" type="checkbox" /><span>Run continuous worker</span></label>
+            <label class="field"><span>Run Interval (minutes)</span><input id="cfgRunInterval" type="number" min="1" max="1440" /></label>
+            <label class="field"><span>Priority Threshold</span><input id="cfgPriorityThreshold" type="number" min="0" max="100" /></label>
+            <label class="field"><span>Hourly Threshold</span><input id="cfgHourlyThreshold" type="number" min="0" max="100" /></label>
+            <label class="field"><span>SQLite DB Path</span><input id="cfgSqlitePath" type="text" /></label>
+          </div>
+
+          <p class="settings-note">Saving updates your local <code>.env</code>. Restart worker/webhook processes to apply all runtime changes.</p>
+          <div class="settings-actions">
+            <button id="saveSettingsBtn" class="action-btn">Save All</button>
+            <button id="restoreHiddenBtn" class="action-btn ghost">Restore Removed Posts</button>
+          </div>
+          <p id="saveStatus" class="save-status"></p>
+        </section>
       </section>
-
-      <section id="filters" class="filters"></section>
-
-      <section id="signalList" class="list"></section>
     </main>
 
     <template id="signalTemplate">

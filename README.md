@@ -34,7 +34,9 @@ The goal is simple: get high-signal updates without manually checking apps all d
   - open links in external browser
   - remove/hide posts
   - restore hidden posts
-  - settings panel (refresh interval, page size, compact mode, default source)
+  - dedicated settings page
+  - edit runtime `.env` values from UI (API keys, YouTube IDs, X usernames, feature toggles)
+  - local UI preferences (refresh interval, page size, compact mode, default source)
 
 ## Tech Stack
 
@@ -155,6 +157,7 @@ Current behavior:
 - open post links in your browser
 - remove posts from inbox view
 - restore removed posts from settings
+- open `Settings` page to manage `.env` without manually editing files
 - quit app from inside the inbox
 
 ### Launch Shortcuts

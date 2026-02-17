@@ -5,6 +5,30 @@ const { execFile } = require("node:child_process");
 
 let tray = null;
 let win = null;
+const RUNTIME_CONFIG_KEYS = [
+  "ENABLE_AI_ANALYSIS",
+  "AI_API_KEY",
+  "AI_API_BASE",
+  "AI_MODEL",
+  "ENABLE_X_COLLECTION",
+  "X_BEARER_TOKEN",
+  "X_FOLLOWED_USERNAMES",
+  "X_MAX_ITEMS",
+  "YOUTUBE_CHANNEL_IDS",
+  "YOUTUBE_MAX_ITEMS",
+  "RSS_FEEDS",
+  "RSS_MAX_ITEMS",
+  "ENABLE_TELEGRAM_WEBHOOK",
+  "TELEGRAM_BOT_TOKEN",
+  "TELEGRAM_CHAT_ID",
+  "TELEGRAM_WEBHOOK_PORT",
+  "TELEGRAM_WEBHOOK_SECRET",
+  "RUN_CONTINUOUS",
+  "RUN_INTERVAL_MINUTES",
+  "PRIORITY_THRESHOLD",
+  "HOURLY_THRESHOLD",
+  "SQLITE_DB_PATH"
+];
 
 function resolveAssetPath(relPath) {
   const devPath = path.resolve(process.cwd(), relPath);
@@ -15,6 +39,63 @@ function resolveAssetPath(relPath) {
 function resolveDbPath() {
   const fromEnv = process.env.SQLITE_DB_PATH || "./data/opacity.db";
   return path.isAbsolute(fromEnv) ? fromEnv : path.resolve(process.cwd(), fromEnv);
+}
+
+function resolveEnvPath() {
+  const fromEnv = process.env.OPACITY_ENV_FILE || ".env";
+  return path.isAbsolute(fromEnv) ? fromEnv : path.resolve(process.cwd(), fromEnv);
+}
+
+function readEnvMap() {
+  const envPath = resolveEnvPath();
+  if (!fs.existsSync(envPath)) return {};
+
+  const lines = fs.readFileSync(envPath, "utf8").split("\n");
+  const result = {};
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const idx = line.indexOf("=");
+    if (idx === -1) continue;
+    const key = line.slice(0, idx).trim();
+    const value = line.slice(idx + 1).trim();
+    result[key] = value;
+  }
+
+  return result;
+}
+
+function serializeEnvValue(value) {
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (value === null || value === undefined) return "";
+  return String(value);
+}
+
+function writeEnvMap(nextValues) {
+  const envPath = resolveEnvPath();
+  const current = readEnvMap();
+  const merged = { ...current, ...nextValues };
+
+  const lines = [
+    "# Updated by Opacity menubar settings",
+    ...Object.entries(merged).map(([key, value]) => `${key}=${serializeEnvValue(value)}`)
+  ];
+
+  fs.writeFileSync(envPath, `${lines.join("\n")}\n`, "utf8");
+
+  for (const [key, value] of Object.entries(nextValues)) {
+    process.env[key] = serializeEnvValue(value);
+  }
+}
+
+function getRuntimeConfig() {
+  const current = readEnvMap();
+  const result = {};
+  for (const key of RUNTIME_CONFIG_KEYS) {
+    result[key] = current[key] ?? process.env[key] ?? "";
+  }
+  return result;
 }
 
 function readSignals(limit = 30) {
@@ -215,6 +296,18 @@ ipcMain.handle("signals:hide", async (_event, signalId) => {
   return hideSignal(signalId);
 });
 ipcMain.handle("signals:clearHidden", async () => clearHiddenSignals());
+ipcMain.handle("config:get", async () => getRuntimeConfig());
+ipcMain.handle("config:save", async (_event, values) => {
+  if (!values || typeof values !== "object") return false;
+  const sanitized = {};
+  for (const key of RUNTIME_CONFIG_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(values, key)) {
+      sanitized[key] = values[key];
+    }
+  }
+  writeEnvMap(sanitized);
+  return true;
+});
 ipcMain.handle("signals:openExternal", async (_event, url) => {
   if (typeof url !== "string" || !/^https?:\/\//i.test(url)) {
     return false;
