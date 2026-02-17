@@ -16,10 +16,12 @@ const restoreHiddenBtn = document.getElementById("restoreHiddenBtn");
 const saveStatus = document.getElementById("saveStatus");
 
 const cfgEnableAi = document.getElementById("cfgEnableAi");
+const cfgAiFields = document.getElementById("cfgAiFields");
 const cfgAiApiKey = document.getElementById("cfgAiApiKey");
 const cfgAiApiBase = document.getElementById("cfgAiApiBase");
 const cfgAiModel = document.getElementById("cfgAiModel");
 const cfgEnableX = document.getElementById("cfgEnableX");
+const cfgXFields = document.getElementById("cfgXFields");
 const cfgXBearer = document.getElementById("cfgXBearer");
 const cfgXUsers = document.getElementById("cfgXUsers");
 const cfgXMax = document.getElementById("cfgXMax");
@@ -28,12 +30,15 @@ const cfgYoutubeMax = document.getElementById("cfgYoutubeMax");
 const cfgRssFeeds = document.getElementById("cfgRssFeeds");
 const cfgRssMax = document.getElementById("cfgRssMax");
 const cfgEnableTelegramDelivery = document.getElementById("cfgEnableTelegramDelivery");
+const cfgTelegramFields = document.getElementById("cfgTelegramFields");
 const cfgTelegramBotToken = document.getElementById("cfgTelegramBotToken");
 const cfgTelegramChatId = document.getElementById("cfgTelegramChatId");
 const cfgEnableTelegramWebhook = document.getElementById("cfgEnableTelegramWebhook");
+const cfgTelegramWebhookFields = document.getElementById("cfgTelegramWebhookFields");
 const cfgTelegramWebhookPort = document.getElementById("cfgTelegramWebhookPort");
 const cfgTelegramWebhookSecret = document.getElementById("cfgTelegramWebhookSecret");
 const cfgRunContinuous = document.getElementById("cfgRunContinuous");
+const cfgWorkerFields = document.getElementById("cfgWorkerFields");
 const cfgRunInterval = document.getElementById("cfgRunInterval");
 const cfgPriorityThreshold = document.getElementById("cfgPriorityThreshold");
 const cfgHourlyThreshold = document.getElementById("cfgHourlyThreshold");
@@ -227,16 +232,23 @@ function applyRuntimeConfigFormState() {
   cfgAiApiKey.disabled = !cfgEnableAi.checked;
   cfgAiApiBase.disabled = !cfgEnableAi.checked;
   cfgAiModel.disabled = !cfgEnableAi.checked;
+  cfgAiFields.classList.toggle("hidden", !cfgEnableAi.checked);
 
   cfgXBearer.disabled = !cfgEnableX.checked;
   cfgXUsers.disabled = !cfgEnableX.checked;
   cfgXMax.disabled = !cfgEnableX.checked;
+  cfgXFields.classList.toggle("hidden", !cfgEnableX.checked);
 
   cfgTelegramBotToken.disabled = !cfgEnableTelegramDelivery.checked;
   cfgTelegramChatId.disabled = !cfgEnableTelegramDelivery.checked;
   cfgEnableTelegramWebhook.disabled = !cfgEnableTelegramDelivery.checked;
   cfgTelegramWebhookPort.disabled = !cfgEnableTelegramDelivery.checked;
   cfgTelegramWebhookSecret.disabled = !cfgEnableTelegramDelivery.checked || !cfgEnableTelegramWebhook.checked;
+  cfgTelegramFields.classList.toggle("hidden", !cfgEnableTelegramDelivery.checked);
+  cfgTelegramWebhookFields.classList.toggle("hidden", !cfgEnableTelegramDelivery.checked || !cfgEnableTelegramWebhook.checked);
+
+  cfgRunInterval.disabled = !cfgRunContinuous.checked;
+  cfgWorkerFields.classList.toggle("hidden", !cfgRunContinuous.checked);
 }
 
 async function loadRuntimeConfig() {
@@ -340,6 +352,7 @@ refreshBtn.addEventListener("click", refresh);
 showInboxBtn.addEventListener("click", () => setPage("inbox"));
 showSettingsBtn.addEventListener("click", async () => {
   setPage("settings");
+  settingsPage.scrollTop = 0;
   await loadRuntimeConfig();
 });
 quitBtn.addEventListener("click", async () => {
@@ -386,6 +399,7 @@ cfgEnableAi.addEventListener("change", applyRuntimeConfigFormState);
 cfgEnableX.addEventListener("change", applyRuntimeConfigFormState);
 cfgEnableTelegramDelivery.addEventListener("change", applyRuntimeConfigFormState);
 cfgEnableTelegramWebhook.addEventListener("change", applyRuntimeConfigFormState);
+cfgRunContinuous.addEventListener("change", applyRuntimeConfigFormState);
 
 applySettingsToUi();
 setPage("inbox");
