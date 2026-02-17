@@ -1,6 +1,6 @@
 # Opacity
 
-![Opacity Logo](assets/logo.png)
+![Opacity Logo](assets/logo-read.png)
 
 Real-time intelligence inbox for developers and creators.
 
