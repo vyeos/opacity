@@ -17,7 +17,7 @@ function keywordScore(title: string, snippet: string): number {
   return hotWords.reduce((score, word) => score + (text.includes(word) ? 12 : 0), 20);
 }
 
-function fallbackAnalysis(event: SignalEvent): AnalysisResult {
+export function fallbackAnalysis(event: SignalEvent): AnalysisResult {
   const score = Math.min(100, keywordScore(event.title, event.contentSnippet));
   return {
     summary: `${event.author} posted about: ${event.title}`,
@@ -69,8 +69,10 @@ function normalizeResponse(payload: unknown, fallback: AnalysisResult): Analysis
   if (typeof payload !== "object" || payload === null) return fallback;
   const raw = payload as Partial<AnalysisResult>;
 
-  const score = typeof raw.actionabilityScore === "number" ? Math.max(0, Math.min(100, raw.actionabilityScore)) : fallback.actionabilityScore;
-  const urgency: Urgency = raw.urgency === "now" || raw.urgency === "today" || raw.urgency === "weekly" ? raw.urgency : inferUrgency(score);
+  const score =
+    typeof raw.actionabilityScore === "number" ? Math.max(0, Math.min(100, raw.actionabilityScore)) : fallback.actionabilityScore;
+  const urgency: Urgency =
+    raw.urgency === "now" || raw.urgency === "today" || raw.urgency === "weekly" ? raw.urgency : inferUrgency(score);
 
   const toStringArray = (value: unknown, fb: string[]): string[] =>
     Array.isArray(value) ? value.filter((v): v is string => typeof v === "string").slice(0, 5) : fb;
@@ -94,7 +96,7 @@ export class OpenAICompatibleAnalyzer implements Analyzer {
   async analyze(event: SignalEvent): Promise<AnalysisResult> {
     const fallback = fallbackAnalysis(event);
 
-    if (!this.config.AI_API_KEY) {
+    if (!this.config.ENABLE_AI_ANALYSIS) {
       return fallback;
     }
 
