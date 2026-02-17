@@ -40,30 +40,34 @@ export class TelegramNotifier implements Notifier {
     if (!target.telegram) return;
     if (!this.config.TELEGRAM_BOT_TOKEN || !this.config.TELEGRAM_CHAT_ID) return;
 
-    const response = await fetch(`https://api.telegram.org/bot${this.config.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({
-        chat_id: this.config.TELEGRAM_CHAT_ID,
-        text: formatSignal(signal),
-        disable_web_page_preview: true,
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "Open source", url: signal.event.url }],
-            [
-              { text: "Why this matters", callback_data: `explain:${signal.event.id}` },
-              { text: "Mute source", callback_data: `mute:${signal.event.source}` }
+    try {
+      const response = await fetch(`https://api.telegram.org/bot${this.config.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          chat_id: this.config.TELEGRAM_CHAT_ID,
+          text: formatSignal(signal),
+          disable_web_page_preview: true,
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "Open source", url: signal.event.url }],
+              [
+                { text: "Why this matters", callback_data: `explain:${signal.event.id}` },
+                { text: "Mute source", callback_data: `mute:${signal.event.source}` }
+              ]
             ]
-          ]
-        }
-      })
-    });
+          }
+        })
+      });
 
-    if (!response.ok) {
-      const body = await response.text();
-      console.warn(`Telegram send failed (${response.status}) for signal ${signal.event.id}: ${body}`);
+      if (!response.ok) {
+        const body = await response.text();
+        console.warn(`Telegram send failed (${response.status}) for signal ${signal.event.id}: ${body}`);
+      }
+    } catch (error) {
+      console.warn(`Telegram send error for signal ${signal.event.id}`, error);
     }
   }
 }
