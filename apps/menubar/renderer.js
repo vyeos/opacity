@@ -14,6 +14,8 @@ const refreshIntervalInput = document.getElementById("refreshIntervalInput");
 const pageSizeInput = document.getElementById("pageSizeInput");
 const defaultSourceInput = document.getElementById("defaultSourceInput");
 const compactModeInput = document.getElementById("compactModeInput");
+const retentionCleanupEnabledInput = document.getElementById("retentionCleanupEnabledInput");
+const retentionDaysInput = document.getElementById("retentionDaysInput");
 const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const restoreHiddenBtn = document.getElementById("restoreHiddenBtn");
 const saveStatus = document.getElementById("saveStatus");
@@ -54,7 +56,9 @@ const DEFAULT_SETTINGS = {
   refreshIntervalSec: 30,
   pageSize: 40,
   defaultSource: "all",
-  compactMode: false
+  compactMode: false,
+  retentionCleanupEnabled: true,
+  retentionDays: 30
 };
 
 let allSignals = [];
@@ -75,7 +79,12 @@ function loadSettings() {
       refreshIntervalSec: Number(parsed.refreshIntervalSec) >= 10 ? Number(parsed.refreshIntervalSec) : DEFAULT_SETTINGS.refreshIntervalSec,
       pageSize: Number(parsed.pageSize) >= 10 ? Number(parsed.pageSize) : DEFAULT_SETTINGS.pageSize,
       defaultSource: typeof parsed.defaultSource === "string" ? parsed.defaultSource : DEFAULT_SETTINGS.defaultSource,
-      compactMode: Boolean(parsed.compactMode)
+      compactMode: Boolean(parsed.compactMode),
+      retentionCleanupEnabled:
+        typeof parsed.retentionCleanupEnabled === "boolean"
+          ? parsed.retentionCleanupEnabled
+          : DEFAULT_SETTINGS.retentionCleanupEnabled,
+      retentionDays: Number(parsed.retentionDays) >= 1 ? Number(parsed.retentionDays) : DEFAULT_SETTINGS.retentionDays
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -107,6 +116,9 @@ function applySettingsToUi() {
   refreshIntervalInput.value = String(settings.refreshIntervalSec);
   pageSizeInput.value = String(settings.pageSize);
   compactModeInput.checked = settings.compactMode;
+  retentionCleanupEnabledInput.checked = settings.retentionCleanupEnabled;
+  retentionDaysInput.value = String(settings.retentionDays);
+  retentionDaysInput.disabled = !settings.retentionCleanupEnabled;
 
   if (settings.compactMode) {
     document.body.classList.add("compact");
@@ -290,6 +302,11 @@ function envIsTrue(value) {
   return String(value || "").toLowerCase() === "true";
 }
 
+function envIsTrueWithDefault(value, fallback) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return envIsTrue(value);
+}
+
 function parseCsv(value) {
   return String(value || "")
     .split(",")
@@ -357,6 +374,11 @@ async function loadRuntimeConfig() {
     cfgHourlyThreshold.value = cfg.HOURLY_THRESHOLD || "";
     cfgSqlitePath.value = cfg.SQLITE_DB_PATH || "";
 
+    settings.retentionCleanupEnabled = envIsTrueWithDefault(cfg.MENUBAR_RETENTION_CLEANUP, settings.retentionCleanupEnabled);
+    settings.retentionDays =
+      Number(cfg.MENUBAR_RETENTION_DAYS) >= 1 ? Number(cfg.MENUBAR_RETENTION_DAYS) : settings.retentionDays;
+    applySettingsToUi();
+
     applyRuntimeConfigFormState();
     setSaveStatus("");
   } catch (error) {
@@ -392,6 +414,8 @@ function collectRuntimeConfigPayload() {
     RUN_INTERVAL_MINUTES: cfgRunInterval.value.trim(),
     PRIORITY_THRESHOLD: cfgPriorityThreshold.value.trim(),
     HOURLY_THRESHOLD: cfgHourlyThreshold.value.trim(),
+    MENUBAR_RETENTION_CLEANUP: settings.retentionCleanupEnabled ? "true" : "false",
+    MENUBAR_RETENTION_DAYS: String(settings.retentionDays),
     SQLITE_DB_PATH: cfgSqlitePath.value.trim()
   };
 }
@@ -448,6 +472,8 @@ saveSettingsBtn.addEventListener("click", async () => {
   settings.pageSize = Math.max(10, Math.min(200, Number(pageSizeInput.value) || DEFAULT_SETTINGS.pageSize));
   settings.defaultSource = defaultSourceInput.value || "all";
   settings.compactMode = compactModeInput.checked;
+  settings.retentionCleanupEnabled = retentionCleanupEnabledInput.checked;
+  settings.retentionDays = Math.max(1, Math.min(3650, Number(retentionDaysInput.value) || DEFAULT_SETTINGS.retentionDays));
 
   saveSettings();
   applySettingsToUi();
@@ -477,6 +503,10 @@ restoreHiddenBtn.addEventListener("click", async () => {
   } finally {
     restoreHiddenBtn.disabled = false;
   }
+});
+
+retentionCleanupEnabledInput.addEventListener("change", () => {
+  retentionDaysInput.disabled = !retentionCleanupEnabledInput.checked;
 });
 
 cfgEnableAi.addEventListener("change", applyRuntimeConfigFormState);

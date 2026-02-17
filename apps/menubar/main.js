@@ -28,6 +28,8 @@ const RUNTIME_CONFIG_KEYS = [
   "RUN_INTERVAL_MINUTES",
   "PRIORITY_THRESHOLD",
   "HOURLY_THRESHOLD",
+  "MENUBAR_RETENTION_CLEANUP",
+  "MENUBAR_RETENTION_DAYS",
   "SQLITE_DB_PATH"
 ];
 
@@ -117,10 +119,19 @@ function runDbScript(script, args = [], maxBuffer = 1024 * 1024) {
 }
 
 function readSignals(limit = 30) {
+  const envMap = readEnvMap();
+  const retentionEnabled = String(envMap.MENUBAR_RETENTION_CLEANUP ?? process.env.MENUBAR_RETENTION_CLEANUP ?? "true").toLowerCase() === "true";
+  const retentionDaysRaw = Number(envMap.MENUBAR_RETENTION_DAYS ?? process.env.MENUBAR_RETENTION_DAYS ?? "30");
+  const retentionDays = Number.isFinite(retentionDaysRaw) ? Math.max(1, Math.min(3650, Math.floor(retentionDaysRaw))) : 30;
+
   const queryScript = `
 const { DatabaseSync } = require("node:sqlite");
 const db = new DatabaseSync(process.argv[1]);
 try {
+  const retentionEnabled = process.argv[3] === "true";
+  const retentionDaysRaw = Number(process.argv[4] || "30");
+  const retentionDays = Number.isFinite(retentionDaysRaw) ? Math.max(1, Math.min(3650, Math.floor(retentionDaysRaw))) : 30;
+
   db.exec(\`
     CREATE TABLE IF NOT EXISTS menubar_hidden (
       signal_id TEXT PRIMARY KEY,
@@ -142,43 +153,52 @@ try {
     );
   \`);
 
-  db.exec(\`
-    DELETE FROM analysis
-    WHERE signal_id IN (
-      SELECT s.id
-      FROM signals s
-      LEFT JOIN menubar_favorites f ON f.signal_id = s.id
-      WHERE f.signal_id IS NULL
-      AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', '-30 days')
-    );
+  if (retentionEnabled) {
+    const modifier = \`-\${retentionDays} days\`;
+    db.prepare(\`
+      DELETE FROM analysis
+      WHERE signal_id IN (
+        SELECT s.id
+        FROM signals s
+        LEFT JOIN menubar_favorites f ON f.signal_id = s.id
+        WHERE f.signal_id IS NULL
+        AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', ?)
+      )
+    \`).run(modifier);
 
-    DELETE FROM deliveries
-    WHERE signal_id IN (
-      SELECT s.id
-      FROM signals s
-      LEFT JOIN menubar_favorites f ON f.signal_id = s.id
-      WHERE f.signal_id IS NULL
-      AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', '-30 days')
-    );
+    db.prepare(\`
+      DELETE FROM deliveries
+      WHERE signal_id IN (
+        SELECT s.id
+        FROM signals s
+        LEFT JOIN menubar_favorites f ON f.signal_id = s.id
+        WHERE f.signal_id IS NULL
+        AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', ?)
+      )
+    \`).run(modifier);
 
-    DELETE FROM menubar_hidden
-    WHERE signal_id IN (
-      SELECT s.id
-      FROM signals s
-      LEFT JOIN menubar_favorites f ON f.signal_id = s.id
-      WHERE f.signal_id IS NULL
-      AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', '-30 days')
-    );
+    db.prepare(\`
+      DELETE FROM menubar_hidden
+      WHERE signal_id IN (
+        SELECT s.id
+        FROM signals s
+        LEFT JOIN menubar_favorites f ON f.signal_id = s.id
+        WHERE f.signal_id IS NULL
+        AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', ?)
+      )
+    \`).run(modifier);
 
-    DELETE FROM signals
-    WHERE id IN (
-      SELECT s.id
-      FROM signals s
-      LEFT JOIN menubar_favorites f ON f.signal_id = s.id
-      WHERE f.signal_id IS NULL
-      AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', '-30 days')
-    );
-  \`);
+    db.prepare(\`
+      DELETE FROM signals
+      WHERE id IN (
+        SELECT s.id
+        FROM signals s
+        LEFT JOIN menubar_favorites f ON f.signal_id = s.id
+        WHERE f.signal_id IS NULL
+        AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', ?)
+      )
+    \`).run(modifier);
+  }
 
   const rows = db.prepare(\`
     SELECT
@@ -205,7 +225,7 @@ try {
 }
 `;
 
-  return runDbScript(queryScript, [String(limit)]).then((stdout) => {
+  return runDbScript(queryScript, [String(limit), String(retentionEnabled), String(retentionDays)]).then((stdout) => {
     if (!stdout) return [];
     const rows = JSON.parse(stdout || "[]");
     return rows.map((row) => ({
