@@ -403,14 +403,28 @@ h1 {
   gap: 8px;
 }
 
+.compact .list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
 .compact .title {
   font-size: 14px;
   line-height: 1.3;
 }
 
 .compact .snippet {
-  font-size: 12px;
-  line-height: 1.35;
+  display: none;
+}
+
+.compact .card-actions {
+  margin-top: auto;
+}
+
+.compact .date {
+  margin-left: auto;
 }
 
 .empty {

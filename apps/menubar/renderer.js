@@ -138,6 +138,17 @@ function formatDate(value) {
   }
 }
 
+function formatCompactDate(value) {
+  try {
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short"
+    }).format(new Date(value));
+  } catch {
+    return value || "unknown";
+  }
+}
+
 function applyFilter() {
   if (activeSource === "all") return allSignals;
   return allSignals.filter((signal) => signal.source === activeSource);
@@ -158,7 +169,9 @@ function renderSignals() {
   for (const signal of signals) {
     const node = template.content.cloneNode(true);
     node.querySelector(".source").textContent = signal.source.toUpperCase();
-    node.querySelector(".date").textContent = formatDate(signal.publishedAt);
+    node.querySelector(".date").textContent = settings.compactMode
+      ? formatCompactDate(signal.publishedAt)
+      : formatDate(signal.publishedAt);
     node.querySelector(".title").textContent = signal.title;
     node.querySelector(".snippet").textContent = signal.snippet || "No description.";
 
