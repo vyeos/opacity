@@ -9,7 +9,8 @@ Opacity ingests updates from fast-moving sources (YouTube, X, RSS, release feeds
 Implemented:
 - Real RSS collector (fetch + RSS/Atom parsing)
 - Real YouTube collector (channel Atom feeds)
-- Mock X collector (placeholder)
+- Real X collector (official API with bearer token + usernames)
+- Mock X collector fallback (optional)
 - AI analyzer adapter (OpenAI-compatible API) behind toggle
 - AI toggle + guard:
   - `ENABLE_AI_ANALYSIS=false` skips AI calls
@@ -29,7 +30,6 @@ Implemented:
 - Detailed Telegram `explain:<eventId>` responses from stored analysis
 
 Not implemented yet:
-- Real API integration (X)
 - Menubar app UI
 
 ## Storage Strategy
@@ -101,6 +101,9 @@ TELEGRAM_WEBHOOK_PORT=8787
 TELEGRAM_WEBHOOK_SECRET=optional_secret_for_telegram_header
 STORAGE_DRIVER=sqlite
 POSTGRES_URL=
+X_BEARER_TOKEN=
+X_FOLLOWED_USERNAMES=
+X_MAX_ITEMS=5
 RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
 RSS_MAX_ITEMS=5
 YOUTUBE_CHANNEL_IDS=
@@ -113,10 +116,10 @@ HOURLY_THRESHOLD=50
 
 ## Next Milestones
 
-1. Real X collector
-2. Add scheduler process for always-on hosted runs
-3. Deploy worker + webhook services with `STORAGE_DRIVER=postgres`
-4. Add richer relevance scoring tuned to your topics
+1. Add scheduler process for always-on hosted runs
+2. Deploy worker + webhook services with `STORAGE_DRIVER=postgres`
+3. Add richer relevance scoring tuned to your topics
+4. Build menubar UI client for inbox consumption
 
 ## License
 

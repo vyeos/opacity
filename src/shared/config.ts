@@ -16,6 +16,17 @@ const configSchema = z
     TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
     STORAGE_DRIVER: z.enum(["sqlite", "postgres"]).default("sqlite"),
     POSTGRES_URL: z.string().optional(),
+    X_BEARER_TOKEN: z.string().optional(),
+    X_FOLLOWED_USERNAMES: z
+      .string()
+      .default("")
+      .transform((value) =>
+        value
+          .split(",")
+          .map((entry) => entry.trim().replace(/^@/, ""))
+          .filter((entry) => entry.length > 0)
+      ),
+    X_MAX_ITEMS: z.coerce.number().int().min(1).max(20).default(5),
     YOUTUBE_CHANNEL_IDS: z
       .string()
       .default("")
