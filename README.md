@@ -15,28 +15,35 @@ Implemented:
   - `ENABLE_AI_ANALYSIS=true` requires `AI_API_KEY`
 - Routing engine with urgency/score thresholds
 - Telegram send transport + callback webhook
-- SQLite persistence (local dev):
+- Storage abstraction with two drivers:
+  - `sqlite` for local development
+  - `postgres` for hosted deployment
+- Persistence model:
   - `signals`
   - `analysis`
   - `deliveries`
   - `mutes`
-- De-dup across runs using `signals.id`
+- De-dup across runs using persisted signal IDs
 - Muting sources via Telegram button callback
 
 Not implemented yet:
 - Real API integrations (YouTube, X)
 - Menubar app UI
-- Hosted deployment profile (Postgres adapter)
 
 ## Storage Strategy
 
 Local development now:
+- `STORAGE_DRIVER=sqlite`
 - SQLite file via `SQLITE_DB_PATH` (default `./data/opacity.db`)
 
 Deployment later (no always-on local device required):
-- Keep collectors/analyzer/notifier logic
-- Swap storage implementation from SQLite to Postgres using the same store boundary
-- Run pipeline + webhook on a server (Fly.io, Render, Railway, etc.)
+- `STORAGE_DRIVER=postgres`
+- `POSTGRES_URL=postgres://...`
+- Run pipeline + webhook on a cloud service (Fly.io, Render, Railway, etc.)
+
+Note:
+- Postgres driver is runtime-loaded. Install before using Postgres mode:
+  - `pnpm add pg`
 
 ## Project Structure
 
@@ -48,7 +55,7 @@ src/
   notifier/      # Delivery channels (menubar, Telegram, push)
   processor/     # Routing and scoring logic
   shared/        # Shared types and runtime config
-  storage/       # Persistence layer (SQLite now, Postgres later)
+  storage/       # Persistence (SQLite + Postgres drivers)
   index.ts       # Pipeline entrypoint
 ```
 
@@ -90,6 +97,8 @@ TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_CHAT_ID=your_chat_id
 TELEGRAM_WEBHOOK_PORT=8787
 TELEGRAM_WEBHOOK_SECRET=optional_secret_for_telegram_header
+STORAGE_DRIVER=sqlite
+POSTGRES_URL=
 RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
 RSS_MAX_ITEMS=5
 ENABLE_MOCK_SOCIAL=true
@@ -102,8 +111,8 @@ HOURLY_THRESHOLD=50
 
 1. Real YouTube collector
 2. Real X collector
-3. Postgres storage adapter for hosted deployment
-4. Connect Telegram `explain:<eventId>` to richer stored payload
+3. Deploy worker + webhook services with `STORAGE_DRIVER=postgres`
+4. Expand Telegram explain action with richer stored payload
 
 ## License
 

@@ -3,13 +3,13 @@ import { collectAllSignals } from "./collectors/index.js";
 import { ConsoleNotifier, MultiNotifier, TelegramNotifier } from "./notifier/notifier.js";
 import { routeSignal } from "./processor/router.js";
 import { loadConfig } from "./shared/config.js";
-import { SqliteStore } from "./storage/sqliteStore.js";
+import { createStore } from "./storage/index.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
   const analyzer = new OpenAICompatibleAnalyzer(config);
   const notifier = new MultiNotifier([new ConsoleNotifier(), new TelegramNotifier(config)]);
-  const store = new SqliteStore(config.SQLITE_DB_PATH);
+  const store = createStore(config);
   await store.init();
 
   try {
@@ -46,7 +46,7 @@ async function main(): Promise<void> {
       console.log("No new signals after dedup/mute filtering.");
     }
   } finally {
-    store.close();
+    await store.close();
   }
 }
 

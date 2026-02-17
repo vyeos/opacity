@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 
 import type { AppConfig } from "../shared/config.js";
 import type { SourceKind } from "../shared/types.js";
-import { SqliteStore } from "../storage/sqliteStore.js";
+import { createStore } from "../storage/index.js";
 
 interface TelegramUpdate {
   callback_query?: {
@@ -51,7 +51,7 @@ async function sendBotRequest(config: AppConfig, method: string, payload: unknow
 }
 
 export async function startTelegramWebhookServer(config: AppConfig): Promise<void> {
-  const store = new SqliteStore(config.SQLITE_DB_PATH);
+  const store = createStore(config);
   await store.init();
 
   const server = createServer(async (req, res) => {

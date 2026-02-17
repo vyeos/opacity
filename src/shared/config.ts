@@ -14,6 +14,8 @@ const configSchema = z
     TELEGRAM_CHAT_ID: z.string().min(1).optional(),
     TELEGRAM_WEBHOOK_PORT: z.coerce.number().int().min(1).max(65535).default(8787),
     TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+    STORAGE_DRIVER: z.enum(["sqlite", "postgres"]).default("sqlite"),
+    POSTGRES_URL: z.string().optional(),
     RSS_FEEDS: z
       .string()
       .default("")
@@ -35,6 +37,14 @@ const configSchema = z
         code: z.ZodIssueCode.custom,
         path: ["AI_API_KEY"],
         message: "AI_API_KEY is required when ENABLE_AI_ANALYSIS=true"
+      });
+    }
+
+    if (config.STORAGE_DRIVER === "postgres" && !config.POSTGRES_URL) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["POSTGRES_URL"],
+        message: "POSTGRES_URL is required when STORAGE_DRIVER=postgres"
       });
     }
   });

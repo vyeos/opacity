@@ -3,8 +3,9 @@ import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
 import type { DeliveryAttempt, EnrichedSignal, SourceKind } from "../shared/types.js";
+import type { Store } from "./store.js";
 
-export class SqliteStore {
+export class SqliteStore implements Store {
   private db: DatabaseSync | null = null;
 
   constructor(private readonly dbPath: string) {}
@@ -57,7 +58,7 @@ export class SqliteStore {
     `);
   }
 
-  close(): void {
+  async close(): Promise<void> {
     this.db?.close();
     this.db = null;
   }
