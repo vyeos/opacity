@@ -190,7 +190,13 @@ function renderCard(signal, mode) {
 
   const link = node.querySelector(".link");
   link.href = signal.url;
-  link.textContent = "↗";
+  link.innerHTML = `
+    <svg class="open-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M14 4h6v6" />
+      <path d="M20 4 10 14" />
+      <path d="M20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5" />
+    </svg>
+  `;
   link.title = "Open source";
   link.setAttribute("aria-label", "Open source");
   link.addEventListener("click", async (event) => {

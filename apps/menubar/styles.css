@@ -362,15 +362,29 @@ h1 {
 }
 
 .link {
-  color: var(--gold);
+  color: #58d8ff;
   text-decoration: none;
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   font-weight: 600;
   line-height: 1;
 }
 
 .link:hover {
-  text-decoration: underline;
+  color: #a5eeff;
+}
+
+.open-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .card-actions {
@@ -403,9 +417,9 @@ h1 {
 }
 
 .favorite-btn.is-favorite {
-  border-color: #556f88;
-  background: #233a4d;
-  color: #a6bfdb;
+  border-color: #8f7b35;
+  background: #3a3119;
+  color: #ffd34d;
   cursor: default;
 }
 
