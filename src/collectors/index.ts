@@ -6,13 +6,15 @@ import { XCollector } from "./xCollector.js";
 import { YouTubeCollector } from "./youtubeCollector.js";
 
 export async function collectAllSignals(config: AppConfig): Promise<SignalEvent[]> {
-  const xSignals = await new XCollector(config).collect();
+  const xSignals = config.ENABLE_X_COLLECTION ? await new XCollector(config).collect() : [];
 
   const batches = await Promise.all([
     new RssCollector(config).collect(),
     new YouTubeCollector(config).collect(),
     Promise.resolve(xSignals),
-    config.ENABLE_MOCK_X === true && xSignals.length === 0 ? collectMockXSignals() : Promise.resolve([])
+    config.ENABLE_MOCK_X === true && config.ENABLE_X_COLLECTION && xSignals.length === 0
+      ? collectMockXSignals()
+      : Promise.resolve([])
   ]);
 
   const events = batches.flat();

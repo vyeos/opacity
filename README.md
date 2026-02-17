@@ -11,6 +11,7 @@ Implemented:
 - Real YouTube collector (channel Atom feeds)
 - Real X collector (official API with bearer token + usernames)
 - Mock X collector fallback (optional)
+- Explicit X toggle (`ENABLE_X_COLLECTION`) to disable X completely
 - AI analyzer adapter (OpenAI-compatible API) behind toggle
 - AI toggle + guard:
   - `ENABLE_AI_ANALYSIS=false` skips AI calls
@@ -112,6 +113,12 @@ ENABLE_MOCK_X=true
 SQLITE_DB_PATH=./data/opacity.db
 PRIORITY_THRESHOLD=80
 HOURLY_THRESHOLD=50
+```
+
+To avoid X API costs entirely:
+
+```bash
+ENABLE_X_COLLECTION=false
 ```
 
 ## Next Milestones

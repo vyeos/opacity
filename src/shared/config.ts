@@ -16,6 +16,7 @@ const configSchema = z
     TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
     STORAGE_DRIVER: z.enum(["sqlite", "postgres"]).default("sqlite"),
     POSTGRES_URL: z.string().optional(),
+    ENABLE_X_COLLECTION: z.coerce.boolean().default(false),
     X_BEARER_TOKEN: z.string().optional(),
     X_FOLLOWED_USERNAMES: z
       .string()
