@@ -175,9 +175,32 @@ export class PostgresStore implements Store {
     await this.query("INSERT INTO mutes (source) VALUES ($1) ON CONFLICT (source) DO NOTHING", [source]);
   }
 
-  async getSignalSummary(signalId: string): Promise<string | null> {
-    const result = await this.query<{ title: string; summary: string; how_to_use_json: unknown }>(
-      `SELECT s.title, a.summary, a.how_to_use_json
+  async getSignalExplain(signalId: string): Promise<string | null> {
+    const result = await this.query<{
+      title: string;
+      url: string;
+      summary: string;
+      who_should_care: string;
+      actionability_score: number;
+      urgency: string;
+      confidence: number;
+      what_is_good_json: unknown;
+      what_is_bad_json: unknown;
+      how_to_use_json: unknown;
+      where_to_use_json: unknown;
+    }>(
+      `SELECT
+          s.title,
+          s.url,
+          a.summary,
+          a.who_should_care,
+          a.actionability_score,
+          a.urgency,
+          a.confidence,
+          a.what_is_good_json,
+          a.what_is_bad_json,
+          a.how_to_use_json,
+          a.where_to_use_json
        FROM signals s
        JOIN analysis a ON a.signal_id = s.id
        WHERE s.id = $1 LIMIT 1`,
@@ -187,11 +210,25 @@ export class PostgresStore implements Store {
     const row = result.rows[0];
     if (!row) return null;
 
-    const howToUse = Array.isArray(row.how_to_use_json)
-      ? row.how_to_use_json.filter((value): value is string => typeof value === "string")
-      : [];
+    const toStringArray = (value: unknown): string[] =>
+      Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string") : [];
 
-    return [`${row.title}`, `Why it matters: ${row.summary}`, `How to use: ${howToUse.join("; ")}`].join("\n");
+    const whatIsGood = toStringArray(row.what_is_good_json);
+    const whatIsBad = toStringArray(row.what_is_bad_json);
+    const howToUse = toStringArray(row.how_to_use_json);
+    const whereToUse = toStringArray(row.where_to_use_json);
+
+    return [
+      `Title: ${row.title}`,
+      `Why it matters: ${row.summary}`,
+      `Who should care: ${row.who_should_care}`,
+      `Score: ${row.actionability_score} | Urgency: ${row.urgency} | Confidence: ${row.confidence}`,
+      `Good: ${whatIsGood.join("; ") || "n/a"}`,
+      `Bad: ${whatIsBad.join("; ") || "n/a"}`,
+      `How to use: ${howToUse.join("; ") || "n/a"}`,
+      `Where to use: ${whereToUse.join("; ") || "n/a"}`,
+      `Link: ${row.url}`
+    ].join("\n");
   }
 
   private async query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<PgQueryResult<T>> {

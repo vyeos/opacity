@@ -8,7 +8,8 @@ Opacity ingests updates from fast-moving sources (YouTube, X, RSS, release feeds
 
 Implemented:
 - Real RSS collector (fetch + RSS/Atom parsing)
-- Mock social collectors (YouTube/X placeholders)
+- Real YouTube collector (channel Atom feeds)
+- Mock X collector (placeholder)
 - AI analyzer adapter (OpenAI-compatible API) behind toggle
 - AI toggle + guard:
   - `ENABLE_AI_ANALYSIS=false` skips AI calls
@@ -25,9 +26,10 @@ Implemented:
   - `mutes`
 - De-dup across runs using persisted signal IDs
 - Muting sources via Telegram button callback
+- Detailed Telegram `explain:<eventId>` responses from stored analysis
 
 Not implemented yet:
-- Real API integrations (YouTube, X)
+- Real API integration (X)
 - Menubar app UI
 
 ## Storage Strategy
@@ -101,7 +103,9 @@ STORAGE_DRIVER=sqlite
 POSTGRES_URL=
 RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
 RSS_MAX_ITEMS=5
-ENABLE_MOCK_SOCIAL=true
+YOUTUBE_CHANNEL_IDS=
+YOUTUBE_MAX_ITEMS=3
+ENABLE_MOCK_X=true
 SQLITE_DB_PATH=./data/opacity.db
 PRIORITY_THRESHOLD=80
 HOURLY_THRESHOLD=50
@@ -109,10 +113,10 @@ HOURLY_THRESHOLD=50
 
 ## Next Milestones
 
-1. Real YouTube collector
-2. Real X collector
+1. Real X collector
+2. Add scheduler process for always-on hosted runs
 3. Deploy worker + webhook services with `STORAGE_DRIVER=postgres`
-4. Expand Telegram explain action with richer stored payload
+4. Add richer relevance scoring tuned to your topics
 
 ## License
 

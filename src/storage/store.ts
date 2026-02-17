@@ -8,5 +8,5 @@ export interface Store {
   recordDeliveries(signalId: string, attempts: DeliveryAttempt[]): Promise<void>;
   getMutedSources(): Promise<SourceKind[]>;
   muteSource(source: SourceKind): Promise<void>;
-  getSignalSummary(signalId: string): Promise<string | null>;
+  getSignalExplain(signalId: string): Promise<string | null>;
 }

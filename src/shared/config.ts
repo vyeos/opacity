@@ -16,6 +16,16 @@ const configSchema = z
     TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
     STORAGE_DRIVER: z.enum(["sqlite", "postgres"]).default("sqlite"),
     POSTGRES_URL: z.string().optional(),
+    YOUTUBE_CHANNEL_IDS: z
+      .string()
+      .default("")
+      .transform((value) =>
+        value
+          .split(",")
+          .map((entry) => entry.trim())
+          .filter((entry) => entry.length > 0)
+      ),
+    YOUTUBE_MAX_ITEMS: z.coerce.number().int().min(1).max(20).default(3),
     RSS_FEEDS: z
       .string()
       .default("")
@@ -26,7 +36,7 @@ const configSchema = z
           .filter((entry) => entry.length > 0)
       ),
     RSS_MAX_ITEMS: z.coerce.number().int().min(1).max(20).default(5),
-    ENABLE_MOCK_SOCIAL: z.coerce.boolean().default(true),
+    ENABLE_MOCK_X: z.coerce.boolean().default(true),
     SQLITE_DB_PATH: z.string().default("./data/opacity.db"),
     PRIORITY_THRESHOLD: z.coerce.number().min(0).max(100).default(80),
     HOURLY_THRESHOLD: z.coerce.number().min(0).max(100).default(50)

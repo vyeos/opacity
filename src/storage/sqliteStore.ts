@@ -157,20 +157,64 @@ export class SqliteStore implements Store {
     this.assertDb().prepare("INSERT OR IGNORE INTO mutes (source) VALUES (?)").run(source);
   }
 
-  async getSignalSummary(signalId: string): Promise<string | null> {
+  async getSignalExplain(signalId: string): Promise<string | null> {
     const row = this.assertDb()
       .prepare(
-        `SELECT s.title, a.summary, a.how_to_use_json
+        `SELECT
+            s.title,
+            s.url,
+            a.summary,
+            a.who_should_care,
+            a.actionability_score,
+            a.urgency,
+            a.confidence,
+            a.what_is_good_json,
+            a.what_is_bad_json,
+            a.how_to_use_json,
+            a.where_to_use_json
          FROM signals s
          JOIN analysis a ON a.signal_id = s.id
          WHERE s.id = ? LIMIT 1`
       )
-      .get(signalId) as { title: string; summary: string; how_to_use_json: string } | undefined;
+      .get(signalId) as
+      | {
+          title: string;
+          url: string;
+          summary: string;
+          who_should_care: string;
+          actionability_score: number;
+          urgency: string;
+          confidence: number;
+          what_is_good_json: string;
+          what_is_bad_json: string;
+          how_to_use_json: string;
+          where_to_use_json: string;
+        }
+      | undefined;
 
     if (!row) return null;
 
-    const howToUse = JSON.parse(row.how_to_use_json) as string[];
-    return [`${row.title}`, `Why it matters: ${row.summary}`, `How to use: ${howToUse.join("; ")}`].join("\n");
+    const parseArray = (value: string): string[] => {
+      const parsed = JSON.parse(value) as unknown;
+      return Array.isArray(parsed) ? parsed.filter((entry): entry is string => typeof entry === "string") : [];
+    };
+
+    const whatIsGood = parseArray(row.what_is_good_json);
+    const whatIsBad = parseArray(row.what_is_bad_json);
+    const howToUse = parseArray(row.how_to_use_json);
+    const whereToUse = parseArray(row.where_to_use_json);
+
+    return [
+      `Title: ${row.title}`,
+      `Why it matters: ${row.summary}`,
+      `Who should care: ${row.who_should_care}`,
+      `Score: ${row.actionability_score} | Urgency: ${row.urgency} | Confidence: ${row.confidence}`,
+      `Good: ${whatIsGood.join("; ") || "n/a"}`,
+      `Bad: ${whatIsBad.join("; ") || "n/a"}`,
+      `How to use: ${howToUse.join("; ") || "n/a"}`,
+      `Where to use: ${whereToUse.join("; ") || "n/a"}`,
+      `Link: ${row.url}`
+    ].join("\n");
   }
 
   private assertDb(): DatabaseSync {

@@ -101,7 +101,7 @@ export async function startTelegramWebhookServer(config: AppConfig): Promise<voi
         const chatId = callback.message?.chat?.id;
         if (chatId && eventId) {
           const explainText =
-            (await store.getSignalSummary(eventId)) ??
+            (await store.getSignalExplain(eventId)) ??
             "No stored analysis found for this event yet. Try again after the event is processed.";
           await sendBotRequest(config, "sendMessage", {
             chat_id: chatId,
@@ -111,7 +111,7 @@ export async function startTelegramWebhookServer(config: AppConfig): Promise<voi
 
         await sendBotRequest(config, "answerCallbackQuery", {
           callback_query_id: callback.id,
-          text: "Sent deeper explain placeholder",
+          text: "Sent detailed breakdown",
           show_alert: false
         });
       }
