@@ -86,6 +86,19 @@ Run menubar app:
 pnpm menubar
 ```
 
+Install global `opacity` command (one-time):
+
+```bash
+pnpm command:install
+opacity
+```
+
+Remove global command:
+
+```bash
+pnpm command:remove
+```
+
 ## Environment Variables
 
 Minimal local setup:
@@ -163,6 +176,7 @@ Output directory:
 pnpm dev             # run worker
 pnpm dev:webhook     # run telegram webhook server
 pnpm menubar         # run menubar app
+opacity              # run menubar app via global command
 pnpm build           # build backend
 pnpm typecheck       # type check
 ```

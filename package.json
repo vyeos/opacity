@@ -5,6 +5,9 @@
   "packageManager": "pnpm@10.4.0",
   "description": "Real-time signal inbox for creator/developer intelligence.",
   "main": "dist/index.js",
+  "bin": {
+    "opacity": "bin/opacity.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/index.ts",
@@ -17,7 +20,9 @@
     "menubar:dist": "electron-builder --config electron-builder.menubar.yml",
     "menubar:dist:mac": "electron-builder --config electron-builder.menubar.yml --mac dmg zip",
     "menubar:dist:win": "electron-builder --config electron-builder.menubar.yml --win nsis zip",
-    "menubar:dist:linux": "electron-builder --config electron-builder.menubar.yml --linux AppImage deb"
+    "menubar:dist:linux": "electron-builder --config electron-builder.menubar.yml --linux AppImage deb",
+    "command:install": "pnpm link --global",
+    "command:remove": "pnpm unlink --global opacity"
   },
   "keywords": [
     "news",
