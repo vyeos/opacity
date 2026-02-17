@@ -190,6 +190,9 @@ function renderCard(signal, mode) {
 
   const link = node.querySelector(".link");
   link.href = signal.url;
+  link.textContent = "↗";
+  link.title = "Open source";
+  link.setAttribute("aria-label", "Open source");
   link.addEventListener("click", async (event) => {
     event.preventDefault();
     await window.opacity.openExternal(signal.url);
@@ -199,20 +202,26 @@ function renderCard(signal, mode) {
   const removeBtn = node.querySelector(".remove-btn");
 
   if (mode === "favorites") {
-    favoriteBtn.classList.add("hidden");
-    removeBtn.textContent = "Remove Favorite";
-    removeBtn.addEventListener("click", async () => {
-      removeBtn.disabled = true;
+    favoriteBtn.textContent = "★";
+    favoriteBtn.title = "Remove from favorites";
+    favoriteBtn.setAttribute("aria-label", "Remove from favorites");
+    favoriteBtn.classList.add("is-favorite");
+    favoriteBtn.disabled = false;
+    favoriteBtn.addEventListener("click", async () => {
+      favoriteBtn.disabled = true;
       const removed = await window.opacity.removeFavorite(signal.id);
       if (removed) {
         await refresh();
       } else {
-        removeBtn.disabled = false;
+        favoriteBtn.disabled = false;
       }
     });
+    removeBtn.classList.add("hidden");
   } else {
     const alreadyFavorite = favoriteIds.has(signal.id);
-    favoriteBtn.textContent = alreadyFavorite ? "Favorited" : "Favorite";
+    favoriteBtn.textContent = alreadyFavorite ? "★" : "☆";
+    favoriteBtn.title = alreadyFavorite ? "Favorited" : "Add to favorites";
+    favoriteBtn.setAttribute("aria-label", alreadyFavorite ? "Favorited" : "Add to favorites");
     favoriteBtn.disabled = alreadyFavorite;
     favoriteBtn.classList.toggle("is-favorite", alreadyFavorite);
     favoriteBtn.addEventListener("click", async () => {
