@@ -1,7 +1,7 @@
 const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
-const { DatabaseSync } = require("node:sqlite");
+const { execFile } = require("node:child_process");
 
 let tray = null;
 let win = null;
@@ -14,47 +14,63 @@ function resolveDbPath() {
 function readSignals(limit = 30) {
   const dbPath = resolveDbPath();
   if (!fs.existsSync(dbPath)) {
-    return [];
+    return Promise.resolve([]);
   }
 
-  const db = new DatabaseSync(dbPath);
+  const queryScript = `
+const { DatabaseSync } = require("node:sqlite");
+const db = new DatabaseSync(process.argv[1]);
+try {
+  const rows = db.prepare(\`
+    SELECT
+      s.id,
+      s.source,
+      s.author,
+      s.title,
+      s.url,
+      s.content_snippet,
+      s.published_at,
+      a.summary,
+      a.actionability_score,
+      a.urgency
+    FROM signals s
+    LEFT JOIN analysis a ON a.signal_id = s.id
+    ORDER BY datetime(s.collected_at) DESC
+    LIMIT ?
+  \`).all(Number(process.argv[2]) || 30);
+  process.stdout.write(JSON.stringify(rows));
+} finally {
+  db.close();
+}
+`;
 
-  try {
-    const rows = db
-      .prepare(
-        `SELECT
-          s.id,
-          s.source,
-          s.author,
-          s.title,
-          s.url,
-          s.content_snippet,
-          s.published_at,
-          a.summary,
-          a.actionability_score,
-          a.urgency
-        FROM signals s
-        LEFT JOIN analysis a ON a.signal_id = s.id
-        ORDER BY datetime(s.collected_at) DESC
-        LIMIT ?`
-      )
-      .all(limit);
+  return new Promise((resolve, reject) => {
+    execFile("node", ["-e", queryScript, dbPath, String(limit)], { maxBuffer: 1024 * 1024 }, (error, stdout) => {
+      if (error) {
+        reject(error);
+        return;
+      }
 
-    return rows.map((row) => ({
-      id: row.id,
-      source: row.source,
-      author: row.author,
-      title: row.title,
-      url: row.url,
-      snippet: row.content_snippet,
-      publishedAt: row.published_at,
-      summary: row.summary,
-      score: row.actionability_score,
-      urgency: row.urgency
-    }));
-  } finally {
-    db.close();
-  }
+      try {
+        const rows = JSON.parse(stdout || "[]");
+        const signals = rows.map((row) => ({
+          id: row.id,
+          source: row.source,
+          author: row.author,
+          title: row.title,
+          url: row.url,
+          snippet: row.content_snippet,
+          publishedAt: row.published_at,
+          summary: row.summary,
+          score: row.actionability_score,
+          urgency: row.urgency
+        }));
+        resolve(signals);
+      } catch (parseError) {
+        reject(parseError);
+      }
+    });
+  });
 }
 
 function createWindow() {
@@ -118,9 +134,7 @@ function createTray() {
   tray.setContextMenu(contextMenu);
 }
 
-ipcMain.handle("signals:list", (_event, limit = 30) => {
-  return readSignals(limit);
-});
+ipcMain.handle("signals:list", async (_event, limit = 30) => readSignals(limit));
 
 app.whenReady().then(() => {
   createWindow();
