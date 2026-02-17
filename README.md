@@ -86,6 +86,7 @@ pnpm dev:webhook
 Webhook is optional. Enable it only if you want Telegram callback actions (`Mute source`, `Why this matters`):
 
 ```bash
+ENABLE_TELEGRAM_DELIVERY=true
 ENABLE_TELEGRAM_WEBHOOK=true
 ```
 
@@ -170,6 +171,7 @@ Current behavior:
 - restore removed posts from settings
 - open `Settings` page to manage `.env` without manually editing files
 - feature toggles appear first; related credentials/fields are shown when enabled
+- compact mode shows a 2-column grid with date-only cards (snippets hidden)
 - quit app from inside the inbox
 
 ### Launch Shortcuts
