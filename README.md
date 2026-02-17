@@ -102,11 +102,26 @@ Shortcut launch (macOS Finder double-click):
 /Users/vyeos/personal/opacity/scripts/open-menubar.command
 ```
 
-Package menubar app (macOS):
+Shortcut launch (Linux):
+
+```bash
+/Users/vyeos/personal/opacity/scripts/open-menubar.sh
+```
+
+Shortcut launch (Windows CMD/Explorer):
+
+```bat
+\Users\vyeos\personal\opacity\scripts\open-menubar.bat
+```
+
+Package menubar app:
 
 ```bash
 pnpm menubar:pack   # unpacked app for quick smoke test
-pnpm menubar:dist   # dmg + zip in release/menubar
+pnpm menubar:dist   # build for current host platform
+pnpm menubar:dist:mac
+pnpm menubar:dist:win
+pnpm menubar:dist:linux
 ```
 
 Build:

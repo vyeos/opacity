@@ -14,7 +14,10 @@
     "menubar": "pnpm menubar:dev",
     "menubar:dev": "electron apps/menubar/main.js",
     "menubar:pack": "electron-builder --config electron-builder.menubar.yml --dir",
-    "menubar:dist": "electron-builder --config electron-builder.menubar.yml --mac dmg zip"
+    "menubar:dist": "electron-builder --config electron-builder.menubar.yml",
+    "menubar:dist:mac": "electron-builder --config electron-builder.menubar.yml --mac dmg zip",
+    "menubar:dist:win": "electron-builder --config electron-builder.menubar.yml --win nsis zip",
+    "menubar:dist:linux": "electron-builder --config electron-builder.menubar.yml --linux AppImage deb"
   },
   "keywords": [
     "news",
