@@ -4,7 +4,7 @@
 
 Real-time intelligence inbox for developers and creators.
 
-Opacity ingests updates from fast-moving sources (YouTube, X, RSS, release feeds), analyzes each signal, and routes high-value items to your delivery channels.
+Opacity ingests updates from fast-moving sources (YouTube, X, RSS), analyzes each signal, and routes high-value items to your delivery channels.
 
 ## Current Status
 
@@ -13,7 +13,7 @@ Implemented:
 - Real YouTube collector (channel Atom feeds)
 - Real X collector (official API with bearer token + usernames)
 - Explicit X toggle (`ENABLE_X_COLLECTION`) to disable X completely
-- AI analyzer adapter (OpenAI-compatible API) behind toggle
+- AI analyzer adapter (Gemini/OpenAI-compatible) behind toggle
 - AI toggle + guard:
   - `ENABLE_AI_ANALYSIS=false` skips AI calls
   - `ENABLE_AI_ANALYSIS=true` requires `AI_API_KEY`
@@ -23,12 +23,8 @@ Implemented:
 - Scheduler mode:
   - `RUN_CONTINUOUS=true` keeps worker polling forever
   - `RUN_INTERVAL_MINUTES` controls poll interval
-- Routing engine with urgency/score thresholds
 - Telegram send transport + callback webhook
-- Storage abstraction with two drivers:
-  - `sqlite` for local development
-  - `postgres` for hosted deployment
-- Persistence model:
+- Local SQLite persistence model:
   - `signals`
   - `analysis`
   - `deliveries`
@@ -40,20 +36,10 @@ Implemented:
 Not implemented yet:
 - Native mobile app
 
-## Storage Strategy
+## Storage
 
-Local development now:
-- `STORAGE_DRIVER=sqlite`
 - SQLite file via `SQLITE_DB_PATH` (default `./data/opacity.db`)
-
-Deployment later (no always-on local device required):
-- `STORAGE_DRIVER=postgres`
-- `POSTGRES_URL=postgres://...`
-- Run pipeline + webhook on a cloud service (Fly.io, Render, Railway, etc.)
-
-Note:
-- Postgres driver is runtime-loaded. Install before using Postgres mode:
-  - `pnpm add pg`
+- Fully local setup, no hosted database required
 
 ## Project Structure
 
@@ -65,7 +51,7 @@ src/
   notifier/      # Delivery channels (menubar, Telegram, push)
   processor/     # Routing and scoring logic
   shared/        # Shared types and runtime config
-  storage/       # Persistence (SQLite + Postgres drivers)
+  storage/       # Persistence (SQLite)
   index.ts       # Pipeline entrypoint
 ```
 
@@ -117,8 +103,8 @@ Shortcut launch (Windows CMD/Explorer):
 Package menubar app:
 
 ```bash
-pnpm menubar:pack   # unpacked app for quick smoke test
-pnpm menubar:dist   # build for current host platform
+pnpm menubar:pack
+pnpm menubar:dist
 pnpm menubar:dist:mac
 pnpm menubar:dist:win
 pnpm menubar:dist:linux
@@ -142,10 +128,9 @@ TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_CHAT_ID=your_chat_id
 TELEGRAM_WEBHOOK_PORT=8787
 TELEGRAM_WEBHOOK_SECRET=optional_secret_for_telegram_header
-STORAGE_DRIVER=sqlite
-POSTGRES_URL=
 RUN_CONTINUOUS=false
 RUN_INTERVAL_MINUTES=15
+ENABLE_X_COLLECTION=false
 X_BEARER_TOKEN=
 X_FOLLOWED_USERNAMES=
 X_MAX_ITEMS=5
@@ -158,22 +143,9 @@ PRIORITY_THRESHOLD=80
 HOURLY_THRESHOLD=50
 ```
 
-To avoid X API costs entirely:
-
-```bash
-ENABLE_X_COLLECTION=false
-```
-
-To run as an always-on worker:
-
-```bash
-RUN_CONTINUOUS=true
-RUN_INTERVAL_MINUTES=10
-```
-
 ## Menubar App
 
-The desktop menubar app now lives in `/Users/vyeos/personal/opacity/apps/menubar` and reads your local SQLite feed store.
+The desktop menubar app lives in `/Users/vyeos/personal/opacity/apps/menubar` and reads your local SQLite feed store.
 
 Current behavior:
 - Tray icon in macOS menubar
@@ -193,9 +165,9 @@ Packaging notes:
 
 ## Next Milestones
 
-1. Deploy worker + webhook services with `STORAGE_DRIVER=postgres`
-2. Add richer relevance scoring tuned to your topics
-3. Build menubar UI client for inbox consumption
+1. Add richer relevance scoring tuned to your topics
+2. Build a mobile client
+3. Add optional export/sync features for local archive
 
 ## License
 
