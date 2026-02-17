@@ -101,6 +101,34 @@ h1 {
   font-size: 12px;
 }
 
+.filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.filter-btn {
+  border: 1px solid #2c4c66;
+  background: #0d2437;
+  color: #b8cddd;
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.filter-btn.active {
+  border-color: #2aa0c8;
+  background: #124765;
+  color: #f0fbff;
+}
+
+.filter-btn:hover {
+  background: #173950;
+}
+
 .list {
   overflow: auto;
   display: flex;

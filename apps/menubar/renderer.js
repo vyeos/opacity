@@ -1,6 +1,10 @@
 const list = document.getElementById("signalList");
+const filters = document.getElementById("filters");
 const refreshBtn = document.getElementById("refreshBtn");
 const template = document.getElementById("signalTemplate");
+
+let allSignals = [];
+let activeSource = "all";
 
 function formatDate(value) {
   try {
@@ -10,13 +14,19 @@ function formatDate(value) {
   }
 }
 
-function renderSignals(signals) {
+function applyFilter() {
+  if (activeSource === "all") return allSignals;
+  return allSignals.filter((signal) => signal.source === activeSource);
+}
+
+function renderSignals() {
+  const signals = applyFilter();
   list.innerHTML = "";
 
   if (!signals.length) {
     const empty = document.createElement("div");
     empty.className = "empty";
-    empty.textContent = "No signals yet. Run your worker to collect feeds.";
+    empty.textContent = "No signals for this source yet.";
     list.appendChild(empty);
     return;
   }
@@ -30,17 +40,53 @@ function renderSignals(signals) {
 
     const link = node.querySelector(".link");
     link.href = signal.url;
+    link.addEventListener("click", async (event) => {
+      event.preventDefault();
+      await window.opacity.openExternal(signal.url);
+    });
 
     list.appendChild(node);
   }
 }
 
+function renderFilters() {
+  filters.innerHTML = "";
+
+  const sourceCounts = allSignals.reduce(
+    (acc, signal) => {
+      acc[signal.source] = (acc[signal.source] || 0) + 1;
+      return acc;
+    },
+    { all: allSignals.length }
+  );
+
+  for (const [source, count] of Object.entries(sourceCounts)) {
+    const btn = document.createElement("button");
+    btn.className = `filter-btn${activeSource === source ? " active" : ""}`;
+    btn.textContent = `${source.toUpperCase()} (${count})`;
+    btn.addEventListener("click", () => {
+      activeSource = source;
+      renderFilters();
+      renderSignals();
+    });
+    filters.appendChild(btn);
+  }
+}
+
 async function refresh() {
   try {
-    const signals = await window.opacity.listSignals(40);
-    renderSignals(signals);
+    allSignals = await window.opacity.listSignals(40);
+
+    if (activeSource !== "all" && !allSignals.some((signal) => signal.source === activeSource)) {
+      activeSource = "all";
+    }
+
+    renderFilters();
+    renderSignals();
   } catch (error) {
     list.innerHTML = "";
+    filters.innerHTML = "";
+
     const empty = document.createElement("div");
     empty.className = "empty";
     empty.textContent = `Failed to load signals: ${error.message || error}`;

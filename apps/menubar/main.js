@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage } = require("electron");
+const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, shell } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { execFile } = require("node:child_process");
@@ -91,6 +91,10 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, "index.html"));
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
 
   win.on("blur", () => {
     if (win && !win.webContents.isDevToolsOpened()) {
@@ -135,6 +139,13 @@ function createTray() {
 }
 
 ipcMain.handle("signals:list", async (_event, limit = 30) => readSignals(limit));
+ipcMain.handle("signals:openExternal", async (_event, url) => {
+  if (typeof url !== "string" || !/^https?:\/\//i.test(url)) {
+    return false;
+  }
+  await shell.openExternal(url);
+  return true;
+});
 
 app.whenReady().then(() => {
   createWindow();

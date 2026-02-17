@@ -150,6 +150,8 @@ Current behavior:
 - Tray icon in macOS menubar
 - Click to open/close inbox popup
 - Lists recent signals from `signals` table
+- Filter feed by source (`ALL`, `RSS`, `YOUTUBE`, `X`, etc.)
+- `Open source` opens links in your default external browser
 - Auto-refresh every 30 seconds
 
 ## Next Milestones
