@@ -10,7 +10,6 @@ Implemented:
 - Real RSS collector (fetch + RSS/Atom parsing)
 - Real YouTube collector (channel Atom feeds)
 - Real X collector (official API with bearer token + usernames)
-- Mock X collector fallback (optional)
 - Explicit X toggle (`ENABLE_X_COLLECTION`) to disable X completely
 - AI analyzer adapter (OpenAI-compatible API) behind toggle
 - AI toggle + guard:
@@ -112,7 +111,6 @@ RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
 RSS_MAX_ITEMS=5
 YOUTUBE_CHANNEL_IDS=
 YOUTUBE_MAX_ITEMS=3
-ENABLE_MOCK_X=true
 SQLITE_DB_PATH=./data/opacity.db
 PRIORITY_THRESHOLD=80
 HOURLY_THRESHOLD=50

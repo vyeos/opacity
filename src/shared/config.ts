@@ -48,7 +48,6 @@ const configSchema = z
           .filter((entry) => entry.length > 0)
       ),
     RSS_MAX_ITEMS: z.coerce.number().int().min(1).max(20).default(5),
-    ENABLE_MOCK_X: z.coerce.boolean().default(true),
     SQLITE_DB_PATH: z.string().default("./data/opacity.db"),
     PRIORITY_THRESHOLD: z.coerce.number().min(0).max(100).default(80),
     HOURLY_THRESHOLD: z.coerce.number().min(0).max(100).default(50)

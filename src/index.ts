@@ -38,7 +38,7 @@ async function main(): Promise<void> {
     }
 
     if (rawSignals.length === 0) {
-      console.log("No signals collected. Add RSS feeds or enable mock social collectors.");
+      console.log("No signals collected. Add RSS feeds, YouTube channels, or enable X collection.");
       return;
     }
 
