@@ -165,7 +165,7 @@ Full `.env` template is in `.env.example`.
 
 Location: `apps/menubar`
 
-![Opacity Menubar](assets/menu.png)
+<img src="assets/menu.png" alt="Opacity Menubar" width="420" />
 
 Current behavior:
 - click tray icon to open/close inbox
