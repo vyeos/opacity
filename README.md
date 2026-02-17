@@ -92,7 +92,14 @@ pnpm dev:webhook
 Run menubar app:
 
 ```bash
+pnpm menubar
 pnpm menubar:dev
+```
+
+Shortcut launch (macOS Finder double-click):
+
+```bash
+/Users/vyeos/personal/opacity/scripts/open-menubar.command
 ```
 
 Package menubar app (macOS):
