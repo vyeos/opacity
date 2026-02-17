@@ -56,20 +56,21 @@ src/
 
 Requirements:
 - Node.js 20+
+- `pnpm`
 
 Setup:
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env
-npm run dev
+pnpm dev
 ```
 
 Build:
 
 ```bash
-npm run build
-npm start
+pnpm build
+pnpm start
 ```
 
 ## Delivery Modes (Planned)
