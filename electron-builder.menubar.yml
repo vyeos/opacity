@@ -1,0 +1,21 @@
+appId: com.opacity.menubar
+productName: Opacity Inbox
+
+extraMetadata:
+  main: apps/menubar/main.js
+
+directories:
+  output: release/menubar
+
+files:
+  - apps/menubar/**/*
+  - assets/logo.png
+  - package.json
+
+asar: true
+
+mac:
+  category: public.app-category.productivity
+  target:
+    - dmg
+    - zip

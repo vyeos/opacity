@@ -6,6 +6,12 @@ const { execFile } = require("node:child_process");
 let tray = null;
 let win = null;
 
+function resolveAssetPath(relPath) {
+  const devPath = path.resolve(process.cwd(), relPath);
+  if (!app.isPackaged) return devPath;
+  return path.join(process.resourcesPath, relPath);
+}
+
 function resolveDbPath() {
   const fromEnv = process.env.SQLITE_DB_PATH || "./data/opacity.db";
   return path.isAbsolute(fromEnv) ? fromEnv : path.resolve(process.cwd(), fromEnv);
@@ -193,7 +199,7 @@ function toggleWindow() {
 }
 
 function createTray() {
-  const iconPath = path.resolve(process.cwd(), "assets/logo.png");
+  const iconPath = resolveAssetPath("assets/logo.png");
   const icon = nativeImage.createFromPath(iconPath).resize({ width: 18, height: 18 });
 
   tray = new Tray(icon);

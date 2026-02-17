@@ -95,6 +95,13 @@ Run menubar app:
 pnpm menubar:dev
 ```
 
+Package menubar app (macOS):
+
+```bash
+pnpm menubar:pack   # unpacked app for quick smoke test
+pnpm menubar:dist   # dmg + zip in release/menubar
+```
+
 Build:
 
 ```bash
@@ -156,6 +163,11 @@ Current behavior:
 - Settings panel for refresh interval, feed size, default source, compact mode, and restore removed posts
 - Quit action available directly inside inbox header
 - Auto-refresh every 30 seconds
+
+Packaging notes:
+- Config file: `/Users/vyeos/personal/opacity/electron-builder.menubar.yml`
+- Output: `/Users/vyeos/personal/opacity/release/menubar`
+- If installs block scripts, run `pnpm approve-builds` and allow `electron` + `esbuild`.
 
 ## Next Milestones
 

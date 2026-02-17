@@ -3,12 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.4.0",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron",
-      "esbuild"
-    ]
-  },
   "description": "Real-time signal inbox for creator/developer intelligence.",
   "main": "dist/index.js",
   "scripts": {
@@ -17,7 +11,9 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "dev:webhook": "tsx src/telegram-webhook.ts",
-    "menubar:dev": "electron apps/menubar/main.js"
+    "menubar:dev": "electron apps/menubar/main.js",
+    "menubar:pack": "electron-builder --config electron-builder.menubar.yml --dir",
+    "menubar:dist": "electron-builder --config electron-builder.menubar.yml --mac dmg zip"
   },
   "keywords": [
     "news",
@@ -38,14 +34,11 @@
   "devDependencies": {
     "@types/node": "^22.19.11",
     "electron": "^31.7.7",
+    "electron-builder": "^24.13.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "pnpm": {
-    "ignoredBuiltDependencies": [
-      "electron",
-      "esbuild"
-    ],
     "onlyBuiltDependencies": [
       "electron",
       "esbuild"
