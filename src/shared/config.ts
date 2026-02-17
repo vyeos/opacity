@@ -12,6 +12,8 @@ const configSchema = z
     AI_MODEL: z.string().default("gpt-4o-mini"),
     TELEGRAM_BOT_TOKEN: z.string().min(1).optional(),
     TELEGRAM_CHAT_ID: z.string().min(1).optional(),
+    TELEGRAM_WEBHOOK_PORT: z.coerce.number().int().min(1).max(65535).default(8787),
+    TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
     RSS_FEEDS: z
       .string()
       .default("")

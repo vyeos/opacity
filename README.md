@@ -34,6 +34,9 @@ Implemented:
   - `ENABLE_AI_ANALYSIS=true` requires `AI_API_KEY`
 - Routing engine with urgency/score thresholds
 - Telegram bot notifier transport with inline action buttons
+- Telegram webhook server for callback actions:
+  - `mute:<source>` persists source mute in state file
+  - `explain:<eventId>` sends placeholder deeper explanation
 - Console notifier (menubar placeholder)
 - Persistent local state file for dedup across runs:
   - seen event IDs
@@ -43,7 +46,6 @@ Implemented:
 Not implemented yet:
 - Real API integrations (YouTube, X)
 - SQLite/Postgres persistence
-- Telegram callback handling/webhook receiver
 - Menubar app UI
 
 ## Project Structure
@@ -51,6 +53,7 @@ Not implemented yet:
 ```txt
 src/
   analysis/      # AI analysis interfaces and implementations
+  bot/           # Telegram webhook action server
   collectors/    # YouTube/X/RSS/GitHub collectors
   notifier/      # Delivery channels (menubar, Telegram, push)
   processor/     # Routing and scoring logic
@@ -71,6 +74,12 @@ Setup:
 pnpm install
 cp .env.example .env
 pnpm dev
+```
+
+Run webhook server for Telegram button actions:
+
+```bash
+pnpm dev:webhook
 ```
 
 Build:
@@ -96,6 +105,8 @@ AI_API_BASE=https://api.openai.com/v1
 AI_MODEL=gpt-4o-mini
 TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_CHAT_ID=your_chat_id
+TELEGRAM_WEBHOOK_PORT=8787
+TELEGRAM_WEBHOOK_SECRET=optional_secret_for_telegram_header
 RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
 RSS_MAX_ITEMS=5
 ENABLE_MOCK_SOCIAL=true
@@ -125,7 +136,7 @@ Priority source list:
 ### Milestone 1 - Functional backend MVP
 - Add real collector for YouTube uploads
 - Add SQLite persistence for events/read state
-- Add Telegram webhook callback handling
+- Connect `explain:<eventId>` to stored enriched analysis payload
 
 ### Milestone 2 - Product workflow
 - User-configurable source list and topic filters
