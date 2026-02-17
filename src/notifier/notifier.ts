@@ -5,7 +5,16 @@ export interface Notifier {
   notify(signal: EnrichedSignal, target: NotificationTarget): Promise<DeliveryAttempt[]>;
 }
 
-function formatSignal(signal: EnrichedSignal): string {
+function formatSignal(signal: EnrichedSignal, includeAnalysis: boolean): string {
+  if (!includeAnalysis) {
+    return [
+      `Title: ${signal.event.title}`,
+      `Description: ${signal.event.contentSnippet || "No description available."}`,
+      `Source: ${signal.event.source}`,
+      `Link: ${signal.event.url}`
+    ].join("\n");
+  }
+
   return [
     `[${signal.event.source.toUpperCase()}] ${signal.event.title}`,
     `Author: ${signal.event.author}`,
@@ -20,8 +29,10 @@ function formatSignal(signal: EnrichedSignal): string {
 }
 
 export class ConsoleNotifier implements Notifier {
+  constructor(private readonly config: AppConfig) {}
+
   async notify(signal: EnrichedSignal, target: NotificationTarget): Promise<DeliveryAttempt[]> {
-    const payload = formatSignal(signal);
+    const payload = formatSignal(signal, this.config.ENABLE_AI_ANALYSIS);
     const attempts: DeliveryAttempt[] = [];
 
     if (target.menubar) {
@@ -56,15 +67,17 @@ export class TelegramNotifier implements Notifier {
         },
         body: JSON.stringify({
           chat_id: this.config.TELEGRAM_CHAT_ID,
-          text: formatSignal(signal),
+          text: formatSignal(signal, this.config.ENABLE_AI_ANALYSIS),
           disable_web_page_preview: true,
           reply_markup: {
             inline_keyboard: [
               [{ text: "Open source", url: signal.event.url }],
-              [
-                { text: "Why this matters", callback_data: `explain:${signal.event.id}` },
-                { text: "Mute source", callback_data: `mute:${signal.event.source}` }
-              ]
+              this.config.ENABLE_AI_ANALYSIS
+                ? [
+                    { text: "Why this matters", callback_data: `explain:${signal.event.id}` },
+                    { text: "Mute source", callback_data: `mute:${signal.event.source}` }
+                  ]
+                : [{ text: "Mute source", callback_data: `mute:${signal.event.source}` }]
             ]
           }
         })

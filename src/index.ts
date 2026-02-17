@@ -8,13 +8,13 @@ import { createStore } from "./storage/index.js";
 async function main(): Promise<void> {
   const config = loadConfig();
   const analyzer = new OpenAICompatibleAnalyzer(config);
-  const notifier = new MultiNotifier([new ConsoleNotifier(), new TelegramNotifier(config)]);
+  const notifier = new MultiNotifier([new ConsoleNotifier(config), new TelegramNotifier(config)]);
   const store = createStore(config);
   await store.init();
 
   try {
     if (!config.ENABLE_AI_ANALYSIS) {
-      console.log("AI analysis disabled. Using local heuristic summaries only.");
+      console.log("AI analysis disabled. Sending raw signal fields only.");
     }
 
     const mutedSources = await store.getMutedSources();

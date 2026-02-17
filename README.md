@@ -16,6 +16,9 @@ Implemented:
 - AI toggle + guard:
   - `ENABLE_AI_ANALYSIS=false` skips AI calls
   - `ENABLE_AI_ANALYSIS=true` requires `AI_API_KEY`
+- No-AI delivery mode:
+  - notifications include only title, description, source, and link
+  - sends to both menubar and Telegram
 - Routing engine with urgency/score thresholds
 - Telegram send transport + callback webhook
 - Storage abstraction with two drivers:
