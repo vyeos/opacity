@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opacity Menubar</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="grain"></div>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand-wrap">
+          <span class="dot"></span>
+          <h1>Opacity Inbox</h1>
+        </div>
+        <button id="refreshBtn">Refresh</button>
+      </header>
+
+      <section class="hint">
+        <p>Live signal feed from your local pipeline store.</p>
+      </section>
+
+      <section id="signalList" class="list"></section>
+    </main>
+
+    <template id="signalTemplate">
+      <article class="card">
+        <div class="meta-row">
+          <span class="chip source"></span>
+          <span class="chip date"></span>
+        </div>
+        <h2 class="title"></h2>
+        <p class="snippet"></p>
+        <a class="link" target="_blank" rel="noreferrer">Open source</a>
+      </article>
+    </template>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>

@@ -10,7 +10,8 @@
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "dev:webhook": "tsx src/telegram-webhook.ts"
+    "dev:webhook": "tsx src/telegram-webhook.ts",
+    "menubar:dev": "electron apps/menubar/main.js"
   },
   "keywords": [
     "news",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.19.11",
+    "electron": "^31.7.7",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }

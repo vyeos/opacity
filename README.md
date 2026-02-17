@@ -38,7 +38,7 @@ Implemented:
 - Detailed Telegram `explain:<eventId>` responses from stored analysis
 
 Not implemented yet:
-- Menubar app UI
+- Native mobile app
 
 ## Storage Strategy
 
@@ -89,6 +89,12 @@ Run webhook server for Telegram button actions:
 pnpm dev:webhook
 ```
 
+Run menubar app:
+
+```bash
+pnpm menubar:dev
+```
+
 Build:
 
 ```bash
@@ -135,6 +141,16 @@ To run as an always-on worker:
 RUN_CONTINUOUS=true
 RUN_INTERVAL_MINUTES=10
 ```
+
+## Menubar App
+
+The desktop menubar app now lives in `/Users/vyeos/personal/opacity/apps/menubar` and reads your local SQLite feed store.
+
+Current behavior:
+- Tray icon in macOS menubar
+- Click to open/close inbox popup
+- Lists recent signals from `signals` table
+- Auto-refresh every 30 seconds
 
 ## Next Milestones
 
