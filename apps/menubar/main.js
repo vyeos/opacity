@@ -99,12 +99,24 @@ function getRuntimeConfig() {
   return result;
 }
 
-function readSignals(limit = 30) {
+function runDbScript(script, args = [], maxBuffer = 1024 * 1024) {
   const dbPath = resolveDbPath();
   if (!fs.existsSync(dbPath)) {
-    return Promise.resolve([]);
+    return Promise.resolve(null);
   }
 
+  return new Promise((resolve, reject) => {
+    execFile("node", ["-e", script, dbPath, ...args], { maxBuffer }, (error, stdout) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve(stdout);
+    });
+  });
+}
+
+function readSignals(limit = 30) {
   const queryScript = `
 const { DatabaseSync } = require("node:sqlite");
 const db = new DatabaseSync(process.argv[1]);
@@ -113,6 +125,58 @@ try {
     CREATE TABLE IF NOT EXISTS menubar_hidden (
       signal_id TEXT PRIMARY KEY,
       hidden_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS menubar_favorites (
+      signal_id TEXT PRIMARY KEY,
+      source TEXT NOT NULL,
+      author TEXT NOT NULL,
+      title TEXT NOT NULL,
+      url TEXT NOT NULL,
+      content_snippet TEXT NOT NULL,
+      published_at TEXT NOT NULL,
+      summary TEXT,
+      actionability_score REAL,
+      urgency TEXT,
+      favorited_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  \`);
+
+  db.exec(\`
+    DELETE FROM analysis
+    WHERE signal_id IN (
+      SELECT s.id
+      FROM signals s
+      LEFT JOIN menubar_favorites f ON f.signal_id = s.id
+      WHERE f.signal_id IS NULL
+      AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', '-30 days')
+    );
+
+    DELETE FROM deliveries
+    WHERE signal_id IN (
+      SELECT s.id
+      FROM signals s
+      LEFT JOIN menubar_favorites f ON f.signal_id = s.id
+      WHERE f.signal_id IS NULL
+      AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', '-30 days')
+    );
+
+    DELETE FROM menubar_hidden
+    WHERE signal_id IN (
+      SELECT s.id
+      FROM signals s
+      LEFT JOIN menubar_favorites f ON f.signal_id = s.id
+      WHERE f.signal_id IS NULL
+      AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', '-30 days')
+    );
+
+    DELETE FROM signals
+    WHERE id IN (
+      SELECT s.id
+      FROM signals s
+      LEFT JOIN menubar_favorites f ON f.signal_id = s.id
+      WHERE f.signal_id IS NULL
+      AND datetime(COALESCE(s.published_at, s.collected_at)) < datetime('now', '-30 days')
     );
   \`);
 
@@ -141,41 +205,25 @@ try {
 }
 `;
 
-  return new Promise((resolve, reject) => {
-    execFile("node", ["-e", queryScript, dbPath, String(limit)], { maxBuffer: 1024 * 1024 }, (error, stdout) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      try {
-        const rows = JSON.parse(stdout || "[]");
-        const signals = rows.map((row) => ({
-          id: row.id,
-          source: row.source,
-          author: row.author,
-          title: row.title,
-          url: row.url,
-          snippet: row.content_snippet,
-          publishedAt: row.published_at,
-          summary: row.summary,
-          score: row.actionability_score,
-          urgency: row.urgency
-        }));
-        resolve(signals);
-      } catch (parseError) {
-        reject(parseError);
-      }
-    });
+  return runDbScript(queryScript, [String(limit)]).then((stdout) => {
+    if (!stdout) return [];
+    const rows = JSON.parse(stdout || "[]");
+    return rows.map((row) => ({
+      id: row.id,
+      source: row.source,
+      author: row.author,
+      title: row.title,
+      url: row.url,
+      snippet: row.content_snippet,
+      publishedAt: row.published_at,
+      summary: row.summary,
+      score: row.actionability_score,
+      urgency: row.urgency
+    }));
   });
 }
 
 function hideSignal(signalId) {
-  const dbPath = resolveDbPath();
-  if (!fs.existsSync(dbPath)) {
-    return Promise.resolve(false);
-  }
-
   const hideScript = `
 const { DatabaseSync } = require("node:sqlite");
 const db = new DatabaseSync(process.argv[1]);
@@ -193,23 +241,10 @@ try {
 }
 `;
 
-  return new Promise((resolve, reject) => {
-    execFile("node", ["-e", hideScript, dbPath, String(signalId)], { maxBuffer: 1024 * 256 }, (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(true);
-    });
-  });
+  return runDbScript(hideScript, [String(signalId)], 1024 * 256).then((stdout) => Boolean(stdout));
 }
 
 function clearHiddenSignals() {
-  const dbPath = resolveDbPath();
-  if (!fs.existsSync(dbPath)) {
-    return Promise.resolve(false);
-  }
-
   const clearScript = `
 const { DatabaseSync } = require("node:sqlite");
 const db = new DatabaseSync(process.argv[1]);
@@ -221,15 +256,166 @@ try {
 }
 `;
 
-  return new Promise((resolve, reject) => {
-    execFile("node", ["-e", clearScript, dbPath], { maxBuffer: 1024 * 256 }, (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(true);
-    });
+  return runDbScript(clearScript, [], 1024 * 256).then((stdout) => Boolean(stdout));
+}
+
+function listFavoriteSignals(limit = 100) {
+  const script = `
+const { DatabaseSync } = require("node:sqlite");
+const db = new DatabaseSync(process.argv[1]);
+try {
+  db.exec(\`
+    CREATE TABLE IF NOT EXISTS menubar_favorites (
+      signal_id TEXT PRIMARY KEY,
+      source TEXT NOT NULL,
+      author TEXT NOT NULL,
+      title TEXT NOT NULL,
+      url TEXT NOT NULL,
+      content_snippet TEXT NOT NULL,
+      published_at TEXT NOT NULL,
+      summary TEXT,
+      actionability_score REAL,
+      urgency TEXT,
+      favorited_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  \`);
+
+  const rows = db.prepare(\`
+    SELECT
+      signal_id AS id,
+      source,
+      author,
+      title,
+      url,
+      content_snippet,
+      published_at,
+      summary,
+      actionability_score,
+      urgency,
+      favorited_at
+    FROM menubar_favorites
+    ORDER BY datetime(favorited_at) DESC
+    LIMIT ?
+  \`).all(Number(process.argv[2]) || 100);
+  process.stdout.write(JSON.stringify(rows));
+} finally {
+  db.close();
+}
+`;
+
+  return runDbScript(script, [String(limit)]).then((stdout) => {
+    if (!stdout) return [];
+    const rows = JSON.parse(stdout || "[]");
+    return rows.map((row) => ({
+      id: row.id,
+      source: row.source,
+      author: row.author,
+      title: row.title,
+      url: row.url,
+      snippet: row.content_snippet,
+      publishedAt: row.published_at,
+      summary: row.summary,
+      score: row.actionability_score,
+      urgency: row.urgency,
+      favoritedAt: row.favorited_at
+    }));
   });
+}
+
+function addFavoriteSignal(signalId) {
+  const script = `
+const { DatabaseSync } = require("node:sqlite");
+const db = new DatabaseSync(process.argv[1]);
+try {
+  db.exec(\`
+    CREATE TABLE IF NOT EXISTS menubar_favorites (
+      signal_id TEXT PRIMARY KEY,
+      source TEXT NOT NULL,
+      author TEXT NOT NULL,
+      title TEXT NOT NULL,
+      url TEXT NOT NULL,
+      content_snippet TEXT NOT NULL,
+      published_at TEXT NOT NULL,
+      summary TEXT,
+      actionability_score REAL,
+      urgency TEXT,
+      favorited_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  \`);
+
+  const row = db.prepare(\`
+    SELECT
+      s.id AS signal_id,
+      s.source,
+      s.author,
+      s.title,
+      s.url,
+      s.content_snippet,
+      s.published_at,
+      a.summary,
+      a.actionability_score,
+      a.urgency
+    FROM signals s
+    LEFT JOIN analysis a ON a.signal_id = s.id
+    WHERE s.id = ?
+    LIMIT 1
+  \`).get(process.argv[2]);
+
+  if (!row) {
+    process.stdout.write("missing");
+  } else {
+    db.prepare(\`
+      INSERT INTO menubar_favorites (
+        signal_id, source, author, title, url, content_snippet, published_at,
+        summary, actionability_score, urgency, favorited_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(signal_id) DO UPDATE SET
+        source = excluded.source,
+        author = excluded.author,
+        title = excluded.title,
+        url = excluded.url,
+        content_snippet = excluded.content_snippet,
+        published_at = excluded.published_at,
+        summary = excluded.summary,
+        actionability_score = excluded.actionability_score,
+        urgency = excluded.urgency,
+        favorited_at = datetime('now')
+    \`).run(
+      row.signal_id,
+      row.source,
+      row.author,
+      row.title,
+      row.url,
+      row.content_snippet,
+      row.published_at,
+      row.summary ?? null,
+      row.actionability_score ?? null,
+      row.urgency ?? null
+    );
+    process.stdout.write("ok");
+  }
+} finally {
+  db.close();
+}
+`;
+
+  return runDbScript(script, [String(signalId)], 1024 * 256).then((stdout) => stdout === "ok");
+}
+
+function removeFavoriteSignal(signalId) {
+  const script = `
+const { DatabaseSync } = require("node:sqlite");
+const db = new DatabaseSync(process.argv[1]);
+try {
+  db.exec("CREATE TABLE IF NOT EXISTS menubar_favorites (signal_id TEXT PRIMARY KEY, source TEXT NOT NULL, author TEXT NOT NULL, title TEXT NOT NULL, url TEXT NOT NULL, content_snippet TEXT NOT NULL, published_at TEXT NOT NULL, summary TEXT, actionability_score REAL, urgency TEXT, favorited_at TEXT NOT NULL DEFAULT (datetime('now')));");
+  db.prepare("DELETE FROM menubar_favorites WHERE signal_id = ?").run(process.argv[2]);
+  process.stdout.write("ok");
+} finally {
+  db.close();
+}
+`;
+
+  return runDbScript(script, [String(signalId)], 1024 * 256).then((stdout) => Boolean(stdout));
 }
 
 function createWindow() {
@@ -290,6 +476,19 @@ function createTray() {
 }
 
 ipcMain.handle("signals:list", async (_event, limit = 30) => readSignals(limit));
+ipcMain.handle("favorites:list", async (_event, limit = 100) => listFavoriteSignals(limit));
+ipcMain.handle("favorites:add", async (_event, signalId) => {
+  if (typeof signalId !== "string" || signalId.length === 0) {
+    return false;
+  }
+  return addFavoriteSignal(signalId);
+});
+ipcMain.handle("favorites:remove", async (_event, signalId) => {
+  if (typeof signalId !== "string" || signalId.length === 0) {
+    return false;
+  }
+  return removeFavoriteSignal(signalId);
+});
 ipcMain.handle("signals:hide", async (_event, signalId) => {
   if (typeof signalId !== "string" || signalId.length === 0) {
     return false;

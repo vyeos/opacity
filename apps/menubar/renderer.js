@@ -1,10 +1,13 @@
 const list = document.getElementById("signalList");
+const favoriteList = document.getElementById("favoriteList");
 const filters = document.getElementById("filters");
 const refreshBtn = document.getElementById("refreshBtn");
 const quitBtn = document.getElementById("quitBtn");
 const showInboxBtn = document.getElementById("showInboxBtn");
+const showFavoritesBtn = document.getElementById("showFavoritesBtn");
 const showSettingsBtn = document.getElementById("showSettingsBtn");
 const inboxPage = document.getElementById("inboxPage");
+const favoritesPage = document.getElementById("favoritesPage");
 const settingsPage = document.getElementById("settingsPage");
 
 const refreshIntervalInput = document.getElementById("refreshIntervalInput");
@@ -46,7 +49,7 @@ const cfgSqlitePath = document.getElementById("cfgSqlitePath");
 
 const template = document.getElementById("signalTemplate");
 
-const SETTINGS_KEY = "opacity_menubar_settings_v2";
+const SETTINGS_KEY = "opacity_menubar_settings_v3";
 const DEFAULT_SETTINGS = {
   refreshIntervalSec: 30,
   pageSize: 40,
@@ -55,7 +58,10 @@ const DEFAULT_SETTINGS = {
 };
 
 let allSignals = [];
+let favoriteSignals = [];
+let favoriteIds = new Set();
 let activeSource = "all";
+let activePage = "inbox";
 let refreshTimer = null;
 let initializedFilter = false;
 
@@ -83,11 +89,18 @@ function saveSettings() {
 }
 
 function setPage(page) {
+  activePage = page;
   const isInbox = page === "inbox";
+  const isFavorites = page === "favorites";
+  const isSettings = page === "settings";
+
   inboxPage.classList.toggle("hidden", !isInbox);
-  settingsPage.classList.toggle("hidden", isInbox);
+  favoritesPage.classList.toggle("hidden", !isFavorites);
+  settingsPage.classList.toggle("hidden", !isSettings);
+
   showInboxBtn.classList.toggle("active-tab", isInbox);
-  showSettingsBtn.classList.toggle("active-tab", !isInbox);
+  showFavoritesBtn.classList.toggle("active-tab", isFavorites);
+  showSettingsBtn.classList.toggle("active-tab", isSettings);
 }
 
 function applySettingsToUi() {
@@ -154,6 +167,69 @@ function applyFilter() {
   return allSignals.filter((signal) => signal.source === activeSource);
 }
 
+function renderCard(signal, mode) {
+  const node = template.content.cloneNode(true);
+  node.querySelector(".source").textContent = signal.source.toUpperCase();
+  node.querySelector(".date").textContent = settings.compactMode
+    ? formatCompactDate(signal.publishedAt)
+    : formatDate(signal.publishedAt);
+  node.querySelector(".title").textContent = signal.title;
+  node.querySelector(".snippet").textContent = signal.snippet || "No description.";
+
+  const link = node.querySelector(".link");
+  link.href = signal.url;
+  link.addEventListener("click", async (event) => {
+    event.preventDefault();
+    await window.opacity.openExternal(signal.url);
+  });
+
+  const favoriteBtn = node.querySelector(".favorite-btn");
+  const removeBtn = node.querySelector(".remove-btn");
+
+  if (mode === "favorites") {
+    favoriteBtn.classList.add("hidden");
+    removeBtn.textContent = "Remove Favorite";
+    removeBtn.addEventListener("click", async () => {
+      removeBtn.disabled = true;
+      const removed = await window.opacity.removeFavorite(signal.id);
+      if (removed) {
+        await refresh();
+      } else {
+        removeBtn.disabled = false;
+      }
+    });
+  } else {
+    const alreadyFavorite = favoriteIds.has(signal.id);
+    favoriteBtn.textContent = alreadyFavorite ? "Favorited" : "Favorite";
+    favoriteBtn.disabled = alreadyFavorite;
+    favoriteBtn.classList.toggle("is-favorite", alreadyFavorite);
+    favoriteBtn.addEventListener("click", async () => {
+      favoriteBtn.disabled = true;
+      const added = await window.opacity.addFavorite(signal.id);
+      if (added) {
+        await refresh();
+      } else {
+        favoriteBtn.disabled = false;
+      }
+    });
+
+    removeBtn.addEventListener("click", async () => {
+      removeBtn.disabled = true;
+      const removed = await window.opacity.hideSignal(signal.id);
+      if (removed) {
+        allSignals = allSignals.filter((item) => item.id !== signal.id);
+        renderDefaultSourceOptions();
+        renderFilters();
+        renderSignals();
+      } else {
+        removeBtn.disabled = false;
+      }
+    });
+  }
+
+  return node;
+}
+
 function renderSignals() {
   const signals = applyFilter();
   list.innerHTML = "";
@@ -167,36 +243,22 @@ function renderSignals() {
   }
 
   for (const signal of signals) {
-    const node = template.content.cloneNode(true);
-    node.querySelector(".source").textContent = signal.source.toUpperCase();
-    node.querySelector(".date").textContent = settings.compactMode
-      ? formatCompactDate(signal.publishedAt)
-      : formatDate(signal.publishedAt);
-    node.querySelector(".title").textContent = signal.title;
-    node.querySelector(".snippet").textContent = signal.snippet || "No description.";
+    list.appendChild(renderCard(signal, "inbox"));
+  }
+}
 
-    const link = node.querySelector(".link");
-    link.href = signal.url;
-    link.addEventListener("click", async (event) => {
-      event.preventDefault();
-      await window.opacity.openExternal(signal.url);
-    });
+function renderFavorites() {
+  favoriteList.innerHTML = "";
+  if (!favoriteSignals.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No favorites yet.";
+    favoriteList.appendChild(empty);
+    return;
+  }
 
-    const removeBtn = node.querySelector(".remove-btn");
-    removeBtn.addEventListener("click", async () => {
-      removeBtn.disabled = true;
-      const removed = await window.opacity.hideSignal(signal.id);
-      if (removed) {
-        allSignals = allSignals.filter((item) => item.id !== signal.id);
-        renderDefaultSourceOptions();
-        renderFilters();
-        renderSignals();
-      } else {
-        removeBtn.disabled = false;
-      }
-    });
-
-    list.appendChild(node);
+  for (const signal of favoriteSignals) {
+    favoriteList.appendChild(renderCard(signal, "favorites"));
   }
 }
 
@@ -336,7 +398,13 @@ function collectRuntimeConfigPayload() {
 
 async function refresh() {
   try {
-    allSignals = await window.opacity.listSignals(settings.pageSize);
+    const [signals, favorites] = await Promise.all([
+      window.opacity.listSignals(settings.pageSize),
+      window.opacity.listFavorites(500)
+    ]);
+    allSignals = signals;
+    favoriteSignals = favorites;
+    favoriteIds = new Set(favorites.map((item) => item.id));
 
     if (!initializedFilter) {
       activeSource = settings.defaultSource;
@@ -350,8 +418,10 @@ async function refresh() {
     renderDefaultSourceOptions();
     renderFilters();
     renderSignals();
+    renderFavorites();
   } catch (error) {
     list.innerHTML = "";
+    favoriteList.innerHTML = "";
     filters.innerHTML = "";
 
     const empty = document.createElement("div");
@@ -363,6 +433,7 @@ async function refresh() {
 
 refreshBtn.addEventListener("click", refresh);
 showInboxBtn.addEventListener("click", () => setPage("inbox"));
+showFavoritesBtn.addEventListener("click", () => setPage("favorites"));
 showSettingsBtn.addEventListener("click", async () => {
   setPage("settings");
   settingsPage.scrollTop = 0;
@@ -415,6 +486,6 @@ cfgEnableTelegramWebhook.addEventListener("change", applyRuntimeConfigFormState)
 cfgRunContinuous.addEventListener("change", applyRuntimeConfigFormState);
 
 applySettingsToUi();
-setPage("inbox");
+setPage(activePage);
 refresh();
 resetRefreshTimer();

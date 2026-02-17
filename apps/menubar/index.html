@@ -17,6 +17,7 @@
         <div class="topbar topbar-links">
           <div class="actions">
             <button id="showInboxBtn" class="action-btn ghost active-tab">Inbox</button>
+            <button id="showFavoritesBtn" class="action-btn ghost">Favorites</button>
             <button id="showSettingsBtn" class="action-btn ghost">Settings</button>
             <button id="refreshBtn" class="action-btn">Refresh</button>
             <button id="quitBtn" class="action-btn danger">Quit</button>
@@ -31,6 +32,13 @@
 
         <section id="filters" class="filters"></section>
         <section id="signalList" class="list"></section>
+      </section>
+
+      <section id="favoritesPage" class="page hidden">
+        <section class="hint">
+          <p>Saved signals stay here until you remove them.</p>
+        </section>
+        <section id="favoriteList" class="list"></section>
       </section>
 
       <section id="settingsPage" class="page hidden">
@@ -122,7 +130,10 @@
         <p class="snippet"></p>
         <div class="card-actions">
           <a class="link" target="_blank" rel="noreferrer">Open source</a>
-          <button class="remove-btn">Remove</button>
+          <div class="action-group">
+            <button class="favorite-btn">Favorite</button>
+            <button class="remove-btn">Remove</button>
+          </div>
         </div>
       </article>
     </template>

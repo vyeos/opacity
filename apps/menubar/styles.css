@@ -379,6 +379,33 @@ h1 {
   gap: 10px;
 }
 
+.action-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.favorite-btn {
+  border: 1px solid #3f5e7a;
+  background: #1a3245;
+  color: #d7e8f8;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.favorite-btn:hover {
+  background: #25455f;
+}
+
+.favorite-btn.is-favorite {
+  border-color: #556f88;
+  background: #233a4d;
+  color: #a6bfdb;
+  cursor: default;
+}
+
 .remove-btn {
   border: 1px solid #71424a;
   background: #3f2228;
@@ -396,6 +423,10 @@ h1 {
 .remove-btn:disabled {
   opacity: 0.55;
   cursor: default;
+}
+
+.favorite-btn:disabled {
+  opacity: 0.65;
 }
 
 .compact .card {

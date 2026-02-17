@@ -34,7 +34,9 @@ The goal is simple: get high-signal updates without manually checking apps all d
   - source filters
   - open links in external browser
   - remove/hide posts
+  - favorite posts into a dedicated Favorites page
   - restore hidden posts
+  - auto-clean non-favorited items older than 30 days
   - dedicated settings page
   - edit runtime `.env` values from UI (API keys, YouTube IDs, X usernames, feature toggles)
   - progressive settings UI (enable feature first, then related fields appear)
@@ -168,6 +170,9 @@ Current behavior:
 - filter by source
 - open post links in your browser
 - remove posts from inbox view
+- favorite posts and view them in `Favorites` page
+- favorites are kept until manually removed
+- non-favorited items older than 30 days are automatically removed
 - restore removed posts from settings
 - open `Settings` page to manage `.env` without manually editing files
 - feature toggles appear first; related credentials/fields are shown when enabled

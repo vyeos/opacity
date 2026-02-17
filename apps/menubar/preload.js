@@ -4,6 +4,15 @@ contextBridge.exposeInMainWorld("opacity", {
   listSignals(limit = 30) {
     return ipcRenderer.invoke("signals:list", limit);
   },
+  listFavorites(limit = 100) {
+    return ipcRenderer.invoke("favorites:list", limit);
+  },
+  addFavorite(signalId) {
+    return ipcRenderer.invoke("favorites:add", signalId);
+  },
+  removeFavorite(signalId) {
+    return ipcRenderer.invoke("favorites:remove", signalId);
+  },
   hideSignal(signalId) {
     return ipcRenderer.invoke("signals:hide", signalId);
   },
