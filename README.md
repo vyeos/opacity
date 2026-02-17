@@ -1,5 +1,7 @@
 # Opacity
 
+![Opacity Logo](assets/logo.png)
+
 Real-time intelligence inbox for developers and creators.
 
 Opacity ingests updates from fast-moving sources (YouTube, X, RSS, release feeds), analyzes each signal, and routes high-value items to your delivery channels.
