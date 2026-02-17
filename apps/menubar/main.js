@@ -116,6 +116,34 @@ try {
   });
 }
 
+function clearHiddenSignals() {
+  const dbPath = resolveDbPath();
+  if (!fs.existsSync(dbPath)) {
+    return Promise.resolve(false);
+  }
+
+  const clearScript = `
+const { DatabaseSync } = require("node:sqlite");
+const db = new DatabaseSync(process.argv[1]);
+try {
+  db.exec("DELETE FROM menubar_hidden");
+  process.stdout.write("ok");
+} finally {
+  db.close();
+}
+`;
+
+  return new Promise((resolve, reject) => {
+    execFile("node", ["-e", clearScript, dbPath], { maxBuffer: 1024 * 256 }, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve(true);
+    });
+  });
+}
+
 function createWindow() {
   win = new BrowserWindow({
     width: 430,
@@ -180,6 +208,7 @@ ipcMain.handle("signals:hide", async (_event, signalId) => {
   }
   return hideSignal(signalId);
 });
+ipcMain.handle("signals:clearHidden", async () => clearHiddenSignals());
 ipcMain.handle("signals:openExternal", async (_event, url) => {
   if (typeof url !== "string" || !/^https?:\/\//i.test(url)) {
     return false;

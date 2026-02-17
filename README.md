@@ -153,6 +153,7 @@ Current behavior:
 - Filter feed by source (`ALL`, `RSS`, `YOUTUBE`, `X`, etc.)
 - `Open source` opens links in your default external browser
 - `Remove` hides a post from the menubar inbox
+- Settings panel for refresh interval, feed size, default source, compact mode, and restore removed posts
 - Quit action available directly inside inbox header
 - Auto-refresh every 30 seconds
 

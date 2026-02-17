@@ -7,6 +7,9 @@ contextBridge.exposeInMainWorld("opacity", {
   hideSignal(signalId) {
     return ipcRenderer.invoke("signals:hide", signalId);
   },
+  clearHiddenSignals() {
+    return ipcRenderer.invoke("signals:clearHidden");
+  },
   openExternal(url) {
     return ipcRenderer.invoke("signals:openExternal", url);
   },

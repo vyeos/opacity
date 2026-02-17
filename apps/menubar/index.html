@@ -15,6 +15,7 @@
           <h1>Opacity Inbox</h1>
         </div>
         <div class="actions">
+          <button id="settingsBtn" class="action-btn ghost">Settings</button>
           <button id="refreshBtn" class="action-btn">Refresh</button>
           <button id="quitBtn" class="action-btn danger">Quit</button>
         </div>
@@ -22,6 +23,32 @@
 
       <section class="hint">
         <p>Live signal feed from your local pipeline store.</p>
+      </section>
+
+      <section id="settingsPanel" class="settings-panel hidden">
+        <div class="settings-grid">
+          <label class="field">
+            <span>Refresh interval (sec)</span>
+            <input id="refreshIntervalInput" type="number" min="10" max="600" />
+          </label>
+          <label class="field">
+            <span>Feed size (posts)</span>
+            <input id="pageSizeInput" type="number" min="10" max="200" />
+          </label>
+          <label class="field">
+            <span>Default source</span>
+            <select id="defaultSourceInput"></select>
+          </label>
+          <label class="field switch">
+            <input id="compactModeInput" type="checkbox" />
+            <span>Compact cards mode</span>
+          </label>
+        </div>
+        <div class="settings-actions">
+          <button id="saveSettingsBtn" class="action-btn">Save</button>
+          <button id="restoreHiddenBtn" class="action-btn ghost">Restore Removed</button>
+          <button id="closeSettingsBtn" class="action-btn ghost">Close</button>
+        </div>
       </section>
 
       <section id="filters" class="filters"></section>
