@@ -148,10 +148,11 @@ The desktop menubar app now lives in `/Users/vyeos/personal/opacity/apps/menubar
 
 Current behavior:
 - Tray icon in macOS menubar
-- Click to open/close inbox popup
+- Click tray icon to open/close inbox popup (no tray menu)
 - Lists recent signals from `signals` table
 - Filter feed by source (`ALL`, `RSS`, `YOUTUBE`, `X`, etc.)
 - `Open source` opens links in your default external browser
+- Quit action available directly inside inbox header
 - Auto-refresh every 30 seconds
 
 ## Next Milestones

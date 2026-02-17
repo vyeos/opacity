@@ -88,6 +88,20 @@ h1 {
   background: #194667;
 }
 
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.danger {
+  border: 1px solid #774149 !important;
+  background: #3a1d24 !important;
+}
+
+.danger:hover {
+  background: #522730 !important;
+}
+
 .hint {
   border: 1px solid var(--line);
   background: rgba(11, 27, 41, 0.9);

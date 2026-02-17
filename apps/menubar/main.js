@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, shell } = require("electron");
+const { app, BrowserWindow, Tray, ipcMain, nativeImage, shell } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { execFile } = require("node:child_process");
@@ -128,14 +128,6 @@ function createTray() {
   tray = new Tray(icon);
   tray.setToolTip("Opacity Inbox");
   tray.on("click", toggleWindow);
-
-  const contextMenu = Menu.buildFromTemplate([
-    { label: "Open Inbox", click: () => toggleWindow() },
-    { type: "separator" },
-    { role: "quit", label: "Quit Opacity" }
-  ]);
-
-  tray.setContextMenu(contextMenu);
 }
 
 ipcMain.handle("signals:list", async (_event, limit = 30) => readSignals(limit));
@@ -145,6 +137,9 @@ ipcMain.handle("signals:openExternal", async (_event, url) => {
   }
   await shell.openExternal(url);
   return true;
+});
+ipcMain.handle("app:quit", () => {
+  app.quit();
 });
 
 app.whenReady().then(() => {

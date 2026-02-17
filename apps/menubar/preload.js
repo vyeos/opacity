@@ -6,5 +6,8 @@ contextBridge.exposeInMainWorld("opacity", {
   },
   openExternal(url) {
     return ipcRenderer.invoke("signals:openExternal", url);
+  },
+  quitApp() {
+    return ipcRenderer.invoke("app:quit");
   }
 });

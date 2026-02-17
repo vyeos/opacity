@@ -1,6 +1,7 @@
 const list = document.getElementById("signalList");
 const filters = document.getElementById("filters");
 const refreshBtn = document.getElementById("refreshBtn");
+const quitBtn = document.getElementById("quitBtn");
 const template = document.getElementById("signalTemplate");
 
 let allSignals = [];
@@ -95,5 +96,8 @@ async function refresh() {
 }
 
 refreshBtn.addEventListener("click", refresh);
+quitBtn.addEventListener("click", async () => {
+  await window.opacity.quitApp();
+});
 refresh();
 setInterval(refresh, 30000);
