@@ -5,18 +5,17 @@ import { routeSignal } from "./processor/router.js";
 import { loadConfig } from "./shared/config.js";
 import { createStore } from "./storage/index.js";
 
-async function main(): Promise<void> {
-  const config = loadConfig();
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function runCycle(config: ReturnType<typeof loadConfig>): Promise<void> {
   const analyzer = new OpenAICompatibleAnalyzer(config);
   const notifier = new MultiNotifier([new ConsoleNotifier(config), new TelegramNotifier(config)]);
   const store = createStore(config);
   await store.init();
 
   try {
-    if (!config.ENABLE_AI_ANALYSIS) {
-      console.log("AI analysis disabled. Sending raw signal fields only.");
-    }
-
     const mutedSources = await store.getMutedSources();
 
     const rawSignals = await collectAllSignals(config);
@@ -48,6 +47,43 @@ async function main(): Promise<void> {
   } finally {
     await store.close();
   }
+}
+
+async function main(): Promise<void> {
+  const config = loadConfig();
+  let stopRequested = false;
+
+  process.once("SIGINT", () => {
+    stopRequested = true;
+  });
+  process.once("SIGTERM", () => {
+    stopRequested = true;
+  });
+
+  if (!config.ENABLE_AI_ANALYSIS) {
+    console.log("AI analysis disabled. Sending raw signal fields only.");
+  }
+
+  if (config.RUN_CONTINUOUS) {
+    console.log(`Worker running in continuous mode. Interval: ${config.RUN_INTERVAL_MINUTES} minute(s).`);
+  }
+
+  do {
+    try {
+      await runCycle(config);
+    } catch (error) {
+      console.error("Worker cycle failed", error);
+      if (!config.RUN_CONTINUOUS) {
+        throw error;
+      }
+    }
+
+    if (!config.RUN_CONTINUOUS || stopRequested) {
+      break;
+    }
+
+    await sleep(config.RUN_INTERVAL_MINUTES * 60_000);
+  } while (!stopRequested);
 }
 
 main().catch((error: unknown) => {

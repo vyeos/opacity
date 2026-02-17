@@ -18,6 +18,9 @@ Implemented:
 - No-AI delivery mode:
   - notifications include only title, description, source, and link
   - sends to both menubar and Telegram
+- Scheduler mode:
+  - `RUN_CONTINUOUS=true` keeps worker polling forever
+  - `RUN_INTERVAL_MINUTES` controls poll interval
 - Routing engine with urgency/score thresholds
 - Telegram send transport + callback webhook
 - Storage abstraction with two drivers:
@@ -104,6 +107,8 @@ TELEGRAM_WEBHOOK_PORT=8787
 TELEGRAM_WEBHOOK_SECRET=optional_secret_for_telegram_header
 STORAGE_DRIVER=sqlite
 POSTGRES_URL=
+RUN_CONTINUOUS=false
+RUN_INTERVAL_MINUTES=15
 X_BEARER_TOKEN=
 X_FOLLOWED_USERNAMES=
 X_MAX_ITEMS=5
@@ -122,12 +127,18 @@ To avoid X API costs entirely:
 ENABLE_X_COLLECTION=false
 ```
 
+To run as an always-on worker:
+
+```bash
+RUN_CONTINUOUS=true
+RUN_INTERVAL_MINUTES=10
+```
+
 ## Next Milestones
 
-1. Add scheduler process for always-on hosted runs
-2. Deploy worker + webhook services with `STORAGE_DRIVER=postgres`
-3. Add richer relevance scoring tuned to your topics
-4. Build menubar UI client for inbox consumption
+1. Deploy worker + webhook services with `STORAGE_DRIVER=postgres`
+2. Add richer relevance scoring tuned to your topics
+3. Build menubar UI client for inbox consumption
 
 ## License
 

@@ -16,6 +16,8 @@ const configSchema = z
     TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
     STORAGE_DRIVER: z.enum(["sqlite", "postgres"]).default("sqlite"),
     POSTGRES_URL: z.string().optional(),
+    RUN_CONTINUOUS: z.coerce.boolean().default(false),
+    RUN_INTERVAL_MINUTES: z.coerce.number().int().min(1).max(1440).default(15),
     ENABLE_X_COLLECTION: z.coerce.boolean().default(false),
     X_BEARER_TOKEN: z.string().optional(),
     X_FOLLOWED_USERNAMES: z
