@@ -54,6 +54,10 @@ export class TelegramNotifier implements Notifier {
   constructor(private readonly config: AppConfig) {}
 
   async notify(signal: EnrichedSignal, target: NotificationTarget): Promise<DeliveryAttempt[]> {
+    if (!this.config.ENABLE_TELEGRAM_DELIVERY) {
+      return [{ channel: "telegram", status: "skipped" }];
+    }
+
     if (!target.telegram) return [{ channel: "telegram", status: "skipped" }];
     if (!this.config.TELEGRAM_BOT_TOKEN || !this.config.TELEGRAM_CHAT_ID) {
       return [{ channel: "telegram", status: "skipped" }];

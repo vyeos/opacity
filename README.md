@@ -4,8 +4,8 @@
 
 Opacity is a local-first intelligence inbox for developers and creators.
 It collects updates from YouTube, RSS, and optional X accounts, then delivers them to:
-- Telegram
-- a desktop menubar inbox
+- desktop menubar inbox
+- Telegram (optional)
 
 The goal is simple: get high-signal updates without manually checking apps all day.
 
@@ -66,7 +66,7 @@ scripts/         OS launch shortcuts
 
 - Node.js 20+
 - pnpm
-- Telegram bot token + chat id (for Telegram delivery)
+- Telegram bot token + chat id (only if `ENABLE_TELEGRAM_DELIVERY=true`)
 
 ## Quick Start
 
@@ -112,12 +112,13 @@ pnpm command:remove
 Minimal local setup:
 
 ```bash
+ENABLE_TELEGRAM_DELIVERY=false
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
 ENABLE_AI_ANALYSIS=false
 ENABLE_X_COLLECTION=false
 RSS_FEEDS=https://openai.com/news/rss.xml,https://hnrss.org/frontpage
 YOUTUBE_CHANNEL_IDS=<comma-separated channel IDs>
-TELEGRAM_BOT_TOKEN=<your token>
-TELEGRAM_CHAT_ID=<your chat id>
 SQLITE_DB_PATH=./data/opacity.db
 RUN_CONTINUOUS=true
 RUN_INTERVAL_MINUTES=15
@@ -146,6 +147,11 @@ Full `.env` template is in `.env.example`.
 
 - `ENABLE_X_COLLECTION=true`
 - Requires `X_BEARER_TOKEN` and `X_FOLLOWED_USERNAMES`
+
+### 4) Optional Telegram Mode
+
+- `ENABLE_TELEGRAM_DELIVERY=true`
+- Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`
 
 ## Menubar App
 

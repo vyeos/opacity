@@ -63,6 +63,9 @@ async function main(): Promise<void> {
   if (!config.ENABLE_AI_ANALYSIS) {
     console.log("AI analysis disabled. Sending raw signal fields only.");
   }
+  if (!config.ENABLE_TELEGRAM_DELIVERY) {
+    console.log("Telegram delivery disabled. Menubar/local pipeline mode only.");
+  }
 
   if (config.RUN_CONTINUOUS) {
     console.log(`Worker running in continuous mode. Interval: ${config.RUN_INTERVAL_MINUTES} minute(s).`);

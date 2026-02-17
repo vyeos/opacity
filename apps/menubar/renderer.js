@@ -27,6 +27,7 @@ const cfgYoutubeIds = document.getElementById("cfgYoutubeIds");
 const cfgYoutubeMax = document.getElementById("cfgYoutubeMax");
 const cfgRssFeeds = document.getElementById("cfgRssFeeds");
 const cfgRssMax = document.getElementById("cfgRssMax");
+const cfgEnableTelegramDelivery = document.getElementById("cfgEnableTelegramDelivery");
 const cfgTelegramBotToken = document.getElementById("cfgTelegramBotToken");
 const cfgTelegramChatId = document.getElementById("cfgTelegramChatId");
 const cfgEnableTelegramWebhook = document.getElementById("cfgEnableTelegramWebhook");
@@ -231,7 +232,11 @@ function applyRuntimeConfigFormState() {
   cfgXUsers.disabled = !cfgEnableX.checked;
   cfgXMax.disabled = !cfgEnableX.checked;
 
-  cfgTelegramWebhookSecret.disabled = !cfgEnableTelegramWebhook.checked;
+  cfgTelegramBotToken.disabled = !cfgEnableTelegramDelivery.checked;
+  cfgTelegramChatId.disabled = !cfgEnableTelegramDelivery.checked;
+  cfgEnableTelegramWebhook.disabled = !cfgEnableTelegramDelivery.checked;
+  cfgTelegramWebhookPort.disabled = !cfgEnableTelegramDelivery.checked;
+  cfgTelegramWebhookSecret.disabled = !cfgEnableTelegramDelivery.checked || !cfgEnableTelegramWebhook.checked;
 }
 
 async function loadRuntimeConfig() {
@@ -252,6 +257,7 @@ async function loadRuntimeConfig() {
     cfgRssFeeds.value = cfg.RSS_FEEDS || "";
     cfgRssMax.value = cfg.RSS_MAX_ITEMS || "";
 
+    cfgEnableTelegramDelivery.checked = envIsTrue(cfg.ENABLE_TELEGRAM_DELIVERY);
     cfgTelegramBotToken.value = cfg.TELEGRAM_BOT_TOKEN || "";
     cfgTelegramChatId.value = cfg.TELEGRAM_CHAT_ID || "";
     cfgEnableTelegramWebhook.checked = envIsTrue(cfg.ENABLE_TELEGRAM_WEBHOOK);
@@ -288,6 +294,7 @@ function collectRuntimeConfigPayload() {
     RSS_FEEDS: parseCsv(cfgRssFeeds.value),
     RSS_MAX_ITEMS: cfgRssMax.value.trim(),
 
+    ENABLE_TELEGRAM_DELIVERY: cfgEnableTelegramDelivery.checked ? "true" : "false",
     TELEGRAM_BOT_TOKEN: cfgTelegramBotToken.value.trim(),
     TELEGRAM_CHAT_ID: cfgTelegramChatId.value.trim(),
     ENABLE_TELEGRAM_WEBHOOK: cfgEnableTelegramWebhook.checked ? "true" : "false",
@@ -377,6 +384,7 @@ restoreHiddenBtn.addEventListener("click", async () => {
 
 cfgEnableAi.addEventListener("change", applyRuntimeConfigFormState);
 cfgEnableX.addEventListener("change", applyRuntimeConfigFormState);
+cfgEnableTelegramDelivery.addEventListener("change", applyRuntimeConfigFormState);
 cfgEnableTelegramWebhook.addEventListener("change", applyRuntimeConfigFormState);
 
 applySettingsToUi();

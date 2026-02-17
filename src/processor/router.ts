@@ -2,10 +2,12 @@ import type { AppConfig } from "../shared/config.js";
 import type { EnrichedSignal, NotificationTarget } from "../shared/types.js";
 
 export function routeSignal(signal: EnrichedSignal, config: AppConfig): NotificationTarget {
+  const telegramEnabled = config.ENABLE_TELEGRAM_DELIVERY;
+
   if (!config.ENABLE_AI_ANALYSIS) {
     return {
       menubar: true,
-      telegram: true
+      telegram: telegramEnabled
     };
   }
 
@@ -15,6 +17,6 @@ export function routeSignal(signal: EnrichedSignal, config: AppConfig): Notifica
 
   return {
     menubar: true,
-    telegram: urgent || important
+    telegram: telegramEnabled && (urgent || important)
   };
 }

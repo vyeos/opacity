@@ -10,6 +10,7 @@ const configSchema = z
     AI_API_KEY: z.string().min(1).optional(),
     AI_API_BASE: z.string().url().default("https://generativelanguage.googleapis.com/v1beta/openai"),
     AI_MODEL: z.string().default("gemini-2.0-flash"),
+    ENABLE_TELEGRAM_DELIVERY: z.coerce.boolean().default(false),
     TELEGRAM_BOT_TOKEN: z.string().min(1).optional(),
     TELEGRAM_CHAT_ID: z.string().min(1).optional(),
     ENABLE_TELEGRAM_WEBHOOK: z.coerce.boolean().default(false),

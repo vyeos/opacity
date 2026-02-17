@@ -4,6 +4,11 @@ import { startTelegramWebhookServer } from "./bot/webhookServer.js";
 async function main(): Promise<void> {
   const config = loadConfig();
 
+  if (!config.ENABLE_TELEGRAM_DELIVERY) {
+    console.log("Telegram delivery is disabled (ENABLE_TELEGRAM_DELIVERY=false).");
+    return;
+  }
+
   if (!config.ENABLE_TELEGRAM_WEBHOOK) {
     console.log("Telegram webhook feature is disabled (ENABLE_TELEGRAM_WEBHOOK=false).");
     return;
