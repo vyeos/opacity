@@ -30,4 +30,4 @@ linux:
     - AppImage
     - deb
   category: Utility
-  maintainer: Opacity Maintainers <maintainers@opacity.app>
+  maintainer: Vyeos <rudranpatel0980@gmail.com>
