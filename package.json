@@ -31,6 +31,10 @@
     "twitter",
     "ai"
   ],
+  "author": {
+    "name": "Opacity Maintainers",
+    "email": "maintainers@opacity.app"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=20"

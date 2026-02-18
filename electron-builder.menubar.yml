@@ -30,3 +30,4 @@ linux:
     - AppImage
     - deb
   category: Utility
+  maintainer: Opacity Maintainers <maintainers@opacity.app>
